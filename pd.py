@@ -156,8 +156,8 @@ def parseEntry(contents):
 # ----------------------------------------------------------------------------
 # main() part of the program
 # ----------------------------------------------------------------------------
-#logFile = getContent('daily.log')   # get entire file into logFile
-logFile = getContent('new-single')   # get entire file into logFile
+logFile = getContent('daily.log')   # get entire file into logFile
+#logFile = getContent('new-single')   # get entire file into logFile
 logFileMax = len(logFile)           # lines in file
 logFileIndex = 0                    # current index into logFile
 
@@ -242,11 +242,18 @@ invkeylist = ['/', '/opt/sas', '/sasdata', '/sastmp', 'Mem:', 'Swap:']
 for x in invkeylist:
     invariants.append('')
 
+print 'Analyzing:'
+
 # --- now we want to analyze some of the data:
 for sysname,dict1 in dict0.items():
     nexttime = date(2020,1,3)
 
+    print 'sysname:', sysname
+
     for datestamp in sorted(dict1):
+        if datestamp == '':
+            continue
+
         # grab logs in date order:
         d2 = dict1[datestamp]
         thisDate = d2['Datestring:'][0] + ':'

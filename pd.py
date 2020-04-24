@@ -213,9 +213,12 @@ while len(inp_entry) > 1:
             dict2[theKey] = theVal
             continue;
 
-        # default:
-        dict2[theKey] = theVal
-        continue;
+        if 'ping' in theKey:
+            dict2[theKey] = theVal
+
+#        # default:
+#        dict2[theKey] = theVal
+#        continue;
 
     # create dict1 using the datestamp for its keys:
     dict1[dateKey] = dict2
@@ -235,12 +238,14 @@ print
 
 delta1 = timedelta(days=1)
 
+inv_d = {'/': 0, '/opt/sas': 0, '/sasdata': 0, 'sastmp': 0, 'Mem': 0, 'Swap': 0 }
+
 invariants = []
 invkeylist = ['/', '/opt/sas', '/sasdata', '/sastmp', 'Mem:', 'Swap:']
 
 # --- initialize the invariants list:
 for x in invkeylist:
-    invariants.append('')
+    invariants.append('') # initialize
 
 print 'Analyzing:'
 
@@ -252,10 +257,10 @@ for sysname,dict1 in dict0.items():
 
     for datestamp in sorted(dict1):
         if datestamp == '':
-            continue
+            continue    # somehow, we get a blank datestamp. Skip it.
 
         # grab logs in date order:
-        d2 = dict1[datestamp]
+        d2 = dict1[datestamp] # d2 is the dictionary for this datestamp
         thisDate = d2['Datestring:'][0] + ':'
 
         # get a date object for this datestamp:
@@ -271,29 +276,38 @@ for sysname,dict1 in dict0.items():
         nexttime = thistime + delta1
 
         """
-        Invariant entries:
-            key '/' val[0]
-            key '/opt/sas' val[0]
-            key '/sasdata' val[0]
-            key '/sastmp'  val[0]
-            key 'Mem:'     val[0]
-            key 'Swap:'    val[0]
+        Notes:
+            Invariant entries:
+                key '/' val[0]
+                key '/opt/sas' val[0]
+                key '/sasdata' val[0]
+                key '/sastmp'  val[0]
+                key 'Mem:'     val[0]
+                key 'Swap:'    val[0]
 
-            Set invariant entries from the first entry
+                Set invariant entries from the first entry
 
             When looping through the dictionary, get the first date, then add a day
             each iteration and create the next key. Make sure the key exists, if not,
             flag it, add a day and iterate again until the end.
+        """
 
+        """
             search for changes to invariant data
             when something comes up different, complain about it,
             then change the invariants list to the new value.
         """
-        val = d2['/'][0]
-        if invariants[0] != val:
-            if len(invariants[0]) > 0:
-                print thisDate, "'/': expected:", invariants[0], "- found:", val
-            invariants[0] = val
+#        val = d2['/'][0]
+#        if invariants[0] != val:
+#            if len(invariants[0]) > 0:
+#                print thisDate, "'/': expected:", invariants[0], "- found:", val
+#            invariants[0] = val
+
+        # change to:
+        # for key in invkeylist:
+        key = invkeylist[0]
+
+        val = d2[key][0]
 
         val = d2['/opt/sas'][0]
         if invariants[1] != val:

@@ -14,6 +14,8 @@ from datetime import timedelta
 
 import pprint # for development
 
+pp = pprint.PrettyPrinter(indent=2, width=160)
+
 iam = sys.argv[0]
 
 # ----------------------------------------------------------------------------
@@ -194,8 +196,6 @@ out_entry = []  # create local entry list
 allSystems = {}   # dictionary with sysname as key, datedEntries as value
 datedEntries = {} # dictionary with datestamp as key, entries as value
 
-pp = pprint.PrettyPrinter(indent=2, width=160)
-
 # grab a chunk of the file, up to "------":
 inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
 
@@ -259,25 +259,27 @@ while len(inp_entry) > 1:
 # create allSystems with the system name for its keys:
 allSystems[sysKey] = datedEntries
 
-#------------------------------------------------------------------------------
-# pretty-print the resulting dictionary:
-print "allSystems:"
-print
-pp.pprint(allSystems)
-print
+##------------------------------------------------------------------------------
+## pretty-print the resulting dictionary:
+#print "allSystems:"
+#print
+#pp.pprint(allSystems)
+#print
 
 delta1 = timedelta(days = 1)
 
-inv_d = {'/': 0, '/opt/sas': 0, '/sasdata': 0, 'sastmp': 0, 'Mem': 0, 'Swap': 0 }
-
-invariants = [] # list of invariant values
-invkeylist = ['/', '/opt/sas', '/sasdata', '/sastmp', 'Mem:', 'Swap:', 'ping test', 'services', 'Uptime:']
-
-# --- initialize the invariants list:
-for x in invkeylist:
-    invariants.append('') # initialize
-
 print 'Analyzing:'
+
+# invariants dictionary
+inv_d = {'/': '', \
+        '/opt/sas':  '',   \
+        '/sasdata':  '',   \
+        '/sastmp':    '',  \
+        'Mem:':      '',   \
+        'Swap:':     '',   \
+        'ping test': 'OK', \
+        'services':  'OK', \
+        'Uptime:':   '' }
 
 # --- now we want to analyze some of the data:
 for sysname, datedEntries in allSystems.items():
@@ -290,13 +292,11 @@ for sysname, datedEntries in allSystems.items():
         if datestamp == '':
             continue    # somehow, we get a blank datestamp. Skip it.
 
-        cur_entry = datedEntries[datestamp] # d2 is the dictionary for this datestamp
+        cur_entry = datedEntries[datestamp] # cur_entry is the dictionary for this datestamp
         cur_date = cur_entry['Datestring:'][0] + ':'
 
         # get a date object for this datestamp:
-        thistime = date(int(datestamp[0:4]), \
-            int(datestamp[4:6]), \
-            int(datestamp[6:8]))
+        thistime = date(int(datestamp[0:4]), int(datestamp[4:6]), int(datestamp[6:8]))
 
         # complain if we see something unexpected:
         if thistime != nexttime:
@@ -306,97 +306,26 @@ for sysname, datedEntries in allSystems.items():
         nexttime = thistime + delta1
 
         """
-        Notes:
-            Invariant entries:
-                key '/'         val[0]
-                key '/opt/sas'  val[0]
-                key '/sasdata'  val[0]
-                key '/sastmp'   val[0]
-                key 'Mem:'      val[0]
-                key 'Swap:'     val[0]
-                key 'ping test' val[0] should always be 'OK'
-                key 'services'  val[0] should always be 'OK'
-                key 'Uptme:'    val[0] should always have 'days'
-
-                Set invariant entries from the first entry
-
-            When looping through the dictionary, get the first date, then add a day
-            each iteration and create the next key. Make sure the key exists, if not,
-            flag it, add a day and iterate again until the end.
-        """
-
-        """
             search for changes to invariant data
             when something comes up different, complain about it,
             then change the invariants list to the new value.
         """
-#        val = cur_entry['/'][0]
-#        if invariants[0] != val:
-#            if len(invariants[0]) > 0:
-#                print cur_date, "'/': expected:", invariants[0], "- found:", val
-#            invariants[0] = val
 
-        # change to:
-        # for key in invkeylist:
-        key = invkeylist[0]
+        for key, value in inv_d.items():
+            if cur_entry.get(key, 'no') != 'no':
+                logval = cur_entry[key][0]
+                if key == 'Uptime:':
+                    if "days" not in logval:
+                        print cur_date, "Rebootied:", logval, "hours ago"
+                elif len(value) > 0 and value != logval:
+                    if key == 'services':
+                        print cur_date, "Some services were down"
+                    else:
+                        print cur_date, key + ": expected: '" + value + "', found: '" + logval + "'"
 
-        val = cur_entry[key][0]
+                if key != 'services' and key != 'ping test' and key != 'Uptime:':
+                    inv_d[key] = logval
 
-        val = cur_entry['/opt/sas'][0]
-        if invariants[1] != val:
-            if len(invariants[1]) > 0:
-                print cur_date, "'/opt/sas': expected:", invariants[1], "- found:", val
-            invariants[1] = val
-
-        val = cur_entry['/sasdata'][0]
-        if invariants[2] != val:
-            if len(invariants[2]) > 0:
-                print cur_date, "'/sasdata': expected:", invariants[2], "- found:", val
-            invariants[2] = val
-
-        val = cur_entry['/sastmp'][0]
-        if invariants[3] != val:
-            if len(invariants[3]) > 0:
-                print cur_date, "'/sastmp': expected:", invariants[3], "- found:", val
-            invariants[3] = val
-
-        val = cur_entry['Mem:'][0]
-        if invariants[4] != val:
-            if len(invariants[4]) > 0:
-                print cur_date, "'Mem': expected:", invariants[4], "- found:", val
-            invariants[4] = val
-
-        val = cur_entry['Swap:'][0]
-        if invariants[5] != val:
-            if len(invariants[5]) > 0:
-                print cur_date, "'Swap': expected:", invariants[5], "- found:", val
-            invariants[5] = val
-
-        if cur_entry.get('ping test', 'no key') != 'no key':
-            val = cur_entry['ping test'][0]
-            if invariants[6] != val:
-                if len(invariants[6]) > 0:
-                    print cur_date, "Ping test: expected:", invariants[6], "- found:", val
-                else:
-                    print cur_date, "first day of ping tests"
-
-                invariants[6] = val
-
-        if cur_entry.get('services', 'no key') != 'no key':
-            val = cur_entry['services'][0]
-            if val != 'OK':
-                print cur_date, "Some services were down"
-
-            if invariants[7] != 'OK':
-                if len(invariants[7]) > 0:
-                    print cur_date, "Some services were down"
-                else:
-                    print cur_date, "first day of services checks"
-                    invariants[7] = 'OK'
-
-        val = cur_entry['Uptime:'][0]
-        if 'days' not in val:
-            print cur_date, "Rebootied"
 
 ##        extract values from specific key-
 #        values = entries['Mem:']

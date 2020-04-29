@@ -87,6 +87,7 @@ def parseEntry(log_entry):
         # get system name, date, uptime, load average:
         if "corp.local" in inpline:
             parts = inpline.split(': ')
+
             entry.append(['Datestring:', parts[1]]) # entry date
             datestamp = time.strptime(parts[1], "%a %b %d %H:%M:%S %Z %Y")
             entry.append(['Datestamp:', str(datestamp.tm_year) + \
@@ -96,7 +97,6 @@ def parseEntry(log_entry):
 
             # snag the next line, it's got uptime, user count, load average
             uptime = log_entry.pop(0)[:-1]
-
             parts = uptime.split(',') # split on comma
             # parts[0] = 00:00:00 up 00 days,
             # parts[1] = 00:00,
@@ -126,6 +126,7 @@ def parseEntry(log_entry):
 
             # get the load averages:
             # snag the last 3 fields from parts, fix up the 1st field
+
             load_list = ['Load:']
             load_list.extend([parts[-3].split()[2], parts[-2], parts[-1]])
 

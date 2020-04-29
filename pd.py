@@ -60,8 +60,7 @@ def getEntry(inpdata, index, maxindex):
         newindex += 1
         # Look ahead to the next line:
         # If it starts with '----',
-        # increment newindex to move past the next line, and break out,
-        # we've reached the end of the entry.
+        # increment newindex to move past the next line, and break out.
         if newindex < maxindex and inpdata[newindex].startswith('----'):
             newindex += 1
             break

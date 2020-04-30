@@ -55,6 +55,7 @@ def getEntry(inpdata, index, maxindex):
            newindex: next index to process
            list of lines in this entry
     """
+
     newindex = index
     outlist = []
     while newindex < maxindex:
@@ -63,7 +64,7 @@ def getEntry(inpdata, index, maxindex):
         # Look ahead to the next line:
         # If it starts with '----',
         # increment newindex to move past the next line, and break out.
-        if newindex < maxindex and inpdata[newindex].startswith('----'):
+        if newindex < maxindex and inpdata[newindex][0:4] == '----':
             newindex += 1
             break
 
@@ -197,13 +198,14 @@ out_entry = []  # create local entry list
 allSystems = {}   # dictionary with sysname as key, datedEntries as value
 datedEntries = {} # dictionary with datestamp as key, entries as value
 
-# grab a chunk of the file, up to "------":
-inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
-
-while len(inp_entry) > 1:
+while inp_index < inp_max:
     # declare entries here so we always have a fresh one
     logEntries = {}  # dictionary with various entries as keys: uptime, mem, etc.
+
+    inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
     out_entry = parseEntry(inp_entry)
+    print "out_entry:", out_entry
+
     dateKey = ''
     for x in out_entry:
         thisKey = x[0]
@@ -211,57 +213,24 @@ while len(inp_entry) > 1:
 
         if 'Datestring:' in thisKey:
             logEntries[thisKey] = thisVal
-            continue
-
-        if 'Datestamp:' in thisKey:
+        elif 'Datestamp:' in thisKey:
             dateKey = thisVal[0]
-            continue
-
-        if 'Sysname:' in thisKey:
+        elif 'Sysname:' in thisKey:
             sysKey = thisVal[0]
-            continue
-
-        if 'Uptime:' in thisKey:
+        else:
             logEntries[thisKey] = thisVal
-            continue
-
-        if 'Load:' in thisKey:
-            logEntries[thisKey] = thisVal
-            continue
-
-        if 'Mem:' in thisKey:
-            logEntries[thisKey] = thisVal
-            continue
-
-        if 'Swap:' in thisKey:
-            logEntries[thisKey] = thisVal
-            continue
-
-        if '/' in thisKey:
-            logEntries[thisKey] = thisVal
-            continue
-
-        if 'ping' in thisKey:
-            logEntries[thisKey] = thisVal
-
-        if 'services' in thisKey:
-            logEntries[thisKey] = thisVal
-
-#        # default:
-#        logEntries[thisKey] = thisVal
-#        continue
 
     # create datedEntries using the datestamp for its keys:
     datedEntries[dateKey] = logEntries
 
-    # get the next inp_entry:
-    inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
+#    # grab a chunk of the file, up to "------":
+#    inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
 
 # create allSystems with the system name for its keys:
 allSystems[sysKey] = datedEntries
 
-##------------------------------------------------------------------------------
-## pretty-print the resulting dictionary:
+#------------------------------------------------------------------------------
+# pretty-print the resulting dictionary:
 #print "allSystems:"
 #print
 #pp.pprint(allSystems)

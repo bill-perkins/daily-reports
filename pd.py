@@ -190,6 +190,63 @@ def parseEntry(log_entry):
     return entry
 
 # ----------------------------------------------------------------------------
+# process()
+# ----------------------------------------------------------------------------
+def process(logfile):
+    inp_file = getContent(logfile)      # get entire file into inp_file
+    inp_max = len(inp_file)             # lines in file
+    inp_index = 0                       # current index into inp_file
+
+    inp_entry = []                      # create local entry list
+    out_entry = []                      # create local entry list
+
+    allSystems = {}                     # dictionary as sysname: datedEntries
+    datedEntries = {}                   # dictionary as datestamp: logEntries
+    cur_syskey = ''                     # current syskey
+
+    while inp_index < inp_max:
+        # declare logEntries here so we always have a fresh one
+        logEntries = {}  # dictionary with log parameter as key, value as value
+
+        # read in a full log entry:
+        inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
+
+        # parse the entry into a list of key:value pairs
+        out_entry = parseEntry(inp_entry)
+
+        # put the key:value pairs into the logEntries;
+        # handle Datestring, Datestamp, and Sysname special:
+        dateKey = ''    # fresh dateKey
+        for x in out_entry:
+            thisKey = x[0]
+            thisVal = x[1:]
+
+            if 'Datestring:' in thisKey:
+                logEntries[thisKey] = thisVal
+            elif 'Datestamp:' in thisKey:
+                dateKey = thisVal[0]
+            elif 'Sysname:' in thisKey:
+                if cur_syskey == '':
+                    cur_syskey = thisVal[0]
+#                    print "first syskey:", cur_syskey
+                if thisVal[0] != cur_syskey:
+#                    print "next  syskey:", thisVal[0]
+                    allSystems[cur_syskey] = datedEntries
+                    datedEntries = {}
+                    cur_syskey = thisVal[0]
+                else:
+                    sysKey = thisVal[0]
+            else:
+                logEntries[thisKey] = thisVal
+
+        # create datedEntries using the datestamp for its keys:
+        datedEntries[dateKey] = logEntries
+
+    # create allSystems with the system name for its keys:
+    allSystems[sysKey] = datedEntries
+    return allSystems
+
+# ----------------------------------------------------------------------------
 # analyze():
 # ----------------------------------------------------------------------------
 def analyze(allSystems):
@@ -252,53 +309,7 @@ def analyze(allSystems):
 
                     if key != 'services' and key != 'ping test' and key != 'Uptime:':
                         inv_d[key] = logval
-
-# ----------------------------------------------------------------------------
-# process()
-# ----------------------------------------------------------------------------
-def process(logfile):
-    inp_file = getContent(logfile) # get entire file into inp_file
-    inp_max = len(inp_file)            # lines in file
-    inp_index = 0                      # current index into inp_file
-
-    inp_entry = []                     # create local entry list
-    out_entry = []                     # create local entry list
-
-    allSystems = {}                    # dictionary as sysname: datedEntries
-    datedEntries = {}                  # dictionary as datestamp: logEntries
-
-    while inp_index < inp_max:
-        # declare logEntries here so we always have a fresh one
-        logEntries = {}  # dictionary with log parameter as key, value as value
-
-        # read in a full log entry:
-        inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
-
-        # parse the entry into a list of key:value pairs
-        out_entry = parseEntry(inp_entry)
-
-        # put the key:value pairs into the logEntries;
-        # handle Datestring, Datestamp, and Sysname special:
-        dateKey = ''    # fresh dateKey
-        for x in out_entry:
-            thisKey = x[0]
-            thisVal = x[1:]
-
-            if 'Datestring:' in thisKey:
-                logEntries[thisKey] = thisVal
-            elif 'Datestamp:' in thisKey:
-                dateKey = thisVal[0]
-            elif 'Sysname:' in thisKey:
-                sysKey = thisVal[0]
-            else:
-                logEntries[thisKey] = thisVal
-
-        # create datedEntries using the datestamp for its keys:
-        datedEntries[dateKey] = logEntries
-
-    # create allSystems with the system name for its keys:
-    allSystems[sysKey] = datedEntries
-    return allSystems
+        print
 
 #------------------------------------------------------------------------------
 # pretty-print the resulting dictionary:
@@ -311,7 +322,12 @@ def process(logfile):
 # main() part of the program
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
-    allSystems = process('daily.log')
+    if len(sys.argv) == 1:
+        inpfile = 'daily.log'
+    else:
+        inpfile = sys.argv[1]
+
+    allSystems = process(inpfile)
     analyze(allSystems)
 
 # ----------------------------------------------------------------------------

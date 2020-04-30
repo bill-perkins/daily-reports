@@ -2,17 +2,7 @@
 #
 # fixdaily.py: stolen from std.py, the 'standard' python program
 
-import os
-import sys
 import platform
-
-## pretty-print a dictionary:
-#import pprint # for development
-# pp = pprint.PrettyPrinter(indent=2, width=160)
-# print "dictionary:"
-# print
-# pp.pprint(dictionary)
-# print
 
 # ----------------------------------------------------------------------------
 # getContent(filename)
@@ -43,16 +33,10 @@ def getContent(filename):
 if __name__ == '__main__':
     """Do something
     """
-    argc = len(sys.argv)
-    iam  = sys.argv[0]
 
     hostname = platform.node()
 
-    if argc == 1:
-        print iam + ": usage:", iam, "inputfile"
-        sys.exit(1)
-
-    inplines = getContent(sys.argv[1])
+    inplines = getContent('daily.log')
     starters = [ 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun' ]
     for line in inplines:
         if line[0:3] in starters:

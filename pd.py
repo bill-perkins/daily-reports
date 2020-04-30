@@ -190,45 +190,115 @@ def parseEntry(log_entry):
     return entry
 
 # ----------------------------------------------------------------------------
-# main() part of the program
+# analyze():
 # ----------------------------------------------------------------------------
-inp_file = getContent('daily.log') # get entire file into inp_file
-inp_max = len(inp_file)            # lines in file
-inp_index = 0                      # current index into inp_file
+def analyze(allSystems):
+    delta1 = timedelta(days = 1)
 
-inp_entry = []  # create local entry list
-out_entry = []  # create local entry list
+    print 'Analyzing:'
 
-allSystems = {}   # dictionary with sysname as key, datedEntries as value
-datedEntries = {} # dictionary with datestamp as key, entries as value
+    # invariants dictionary
+    inv_d = {'/': '', \
+            '/opt/sas':  '',   \
+            '/sasdata':  '',   \
+            '/sastmp':    '',  \
+            'Mem:':      '',   \
+            'Swap:':     '',   \
+            'ping test': 'OK', \
+            'services':  'OK', \
+            'Uptime:':   '' }
 
-while inp_index < inp_max:
-    # declare entries here so we always have a fresh one
-    logEntries = {}  # dictionary with various entries as keys: uptime, mem, etc.
+    # --- now we want to analyze some of the data:
+    for sysname, datedEntries in allSystems.items():
+        nexttime = date(2020,1,3)
 
-    inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
-    out_entry = parseEntry(inp_entry)
-    print "out_entry:", out_entry
+        print 'sysname:', sysname
 
-    dateKey = ''
-    for x in out_entry:
-        thisKey = x[0]
-        thisVal = x[1:]
+        # grab logs in date order:
+        for datestamp in sorted(datedEntries):
+            if datestamp == '':
+                continue    # somehow, we get a blank datestamp. Skip it.
 
-        if 'Datestring:' in thisKey:
-            logEntries[thisKey] = thisVal
-        elif 'Datestamp:' in thisKey:
-            dateKey = thisVal[0]
-        elif 'Sysname:' in thisKey:
-            sysKey = thisVal[0]
-        else:
-            logEntries[thisKey] = thisVal
+            cur_entry = datedEntries[datestamp] # cur_entry is the dictionary for this datestamp
+            cur_date = cur_entry['Datestring:'][0] + ':'
 
-    # create datedEntries using the datestamp for its keys:
-    datedEntries[dateKey] = logEntries
+            # get a date object for this datestamp:
+            thistime = date(int(datestamp[0:4]), int(datestamp[4:6]), int(datestamp[6:8]))
 
-# create allSystems with the system name for its keys:
-allSystems[sysKey] = datedEntries
+            # complain if we see something unexpected:
+            if thistime != nexttime:
+                print cur_date, "expected datestamp:", nexttime, "- found:", thistime
+
+            # create a date object for the next day:
+            nexttime = thistime + delta1
+
+            """
+                search for changes to invariant data
+                when something comes up different, complain about it,
+                then change the invariants list to the new value.
+            """
+
+            for key, value in inv_d.items():
+                if cur_entry.get(key, 'no') != 'no':
+                    logval = cur_entry[key][0]
+                    if key == 'Uptime:':
+                        if "days" not in logval:
+                            print cur_date, "Rebootied:", logval, "hours ago"
+                    elif len(value) > 0 and value != logval:
+                        if key == 'services':
+                            print cur_date, "Some services were down"
+                        else:
+                            print cur_date, key + ": expected: '" + value + "', found: '" + logval + "'"
+
+                    if key != 'services' and key != 'ping test' and key != 'Uptime:':
+                        inv_d[key] = logval
+
+# ----------------------------------------------------------------------------
+# process()
+# ----------------------------------------------------------------------------
+def process(logfile):
+    inp_file = getContent(logfile) # get entire file into inp_file
+    inp_max = len(inp_file)            # lines in file
+    inp_index = 0                      # current index into inp_file
+
+    inp_entry = []                     # create local entry list
+    out_entry = []                     # create local entry list
+
+    allSystems = {}                    # dictionary as sysname: datedEntries
+    datedEntries = {}                  # dictionary as datestamp: logEntries
+
+    while inp_index < inp_max:
+        # declare logEntries here so we always have a fresh one
+        logEntries = {}  # dictionary with log parameter as key, value as value
+
+        # read in a full log entry:
+        inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
+
+        # parse the entry into a list of key:value pairs
+        out_entry = parseEntry(inp_entry)
+
+        # put the key:value pairs into the logEntries;
+        # handle Datestring, Datestamp, and Sysname special:
+        dateKey = ''    # fresh dateKey
+        for x in out_entry:
+            thisKey = x[0]
+            thisVal = x[1:]
+
+            if 'Datestring:' in thisKey:
+                logEntries[thisKey] = thisVal
+            elif 'Datestamp:' in thisKey:
+                dateKey = thisVal[0]
+            elif 'Sysname:' in thisKey:
+                sysKey = thisVal[0]
+            else:
+                logEntries[thisKey] = thisVal
+
+        # create datedEntries using the datestamp for its keys:
+        datedEntries[dateKey] = logEntries
+
+    # create allSystems with the system name for its keys:
+    allSystems[sysKey] = datedEntries
+    return allSystems
 
 #------------------------------------------------------------------------------
 # pretty-print the resulting dictionary:
@@ -237,65 +307,12 @@ allSystems[sysKey] = datedEntries
 #pp.pprint(allSystems)
 #print
 
-delta1 = timedelta(days = 1)
-
-print 'Analyzing:'
-
-# invariants dictionary
-inv_d = {'/': '', \
-        '/opt/sas':  '',   \
-        '/sasdata':  '',   \
-        '/sastmp':    '',  \
-        'Mem:':      '',   \
-        'Swap:':     '',   \
-        'ping test': 'OK', \
-        'services':  'OK', \
-        'Uptime:':   '' }
-
-# --- now we want to analyze some of the data:
-for sysname, datedEntries in allSystems.items():
-    nexttime = date(2020,1,3)
-
-    print 'sysname:', sysname
-
-    # grab logs in date order:
-    for datestamp in sorted(datedEntries):
-        if datestamp == '':
-            continue    # somehow, we get a blank datestamp. Skip it.
-
-        cur_entry = datedEntries[datestamp] # cur_entry is the dictionary for this datestamp
-        cur_date = cur_entry['Datestring:'][0] + ':'
-
-        # get a date object for this datestamp:
-        thistime = date(int(datestamp[0:4]), int(datestamp[4:6]), int(datestamp[6:8]))
-
-        # complain if we see something unexpected:
-        if thistime != nexttime:
-            print cur_date, "expected datestamp:", nexttime, "- found:", thistime
-
-        # create a date object for the next day:
-        nexttime = thistime + delta1
-
-        """
-            search for changes to invariant data
-            when something comes up different, complain about it,
-            then change the invariants list to the new value.
-        """
-
-        for key, value in inv_d.items():
-            if cur_entry.get(key, 'no') != 'no':
-                logval = cur_entry[key][0]
-                if key == 'Uptime:':
-                    if "days" not in logval:
-                        print cur_date, "Rebootied:", logval, "hours ago"
-                elif len(value) > 0 and value != logval:
-                    if key == 'services':
-                        print cur_date, "Some services were down"
-                    else:
-                        print cur_date, key + ": expected: '" + value + "', found: '" + logval + "'"
-
-                if key != 'services' and key != 'ping test' and key != 'Uptime:':
-                    inv_d[key] = logval
+# ----------------------------------------------------------------------------
+# main() part of the program
+# ----------------------------------------------------------------------------
+if __name__ == '__main__':
+    allSystems = process('daily.log')
+    analyze(allSystems)
 
 # ----------------------------------------------------------------------------
 #

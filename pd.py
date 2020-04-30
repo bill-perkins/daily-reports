@@ -99,25 +99,29 @@ def parseEntry(log_entry):
             # snag the next line, it's got uptime, user count, load average
             uptime = log_entry.pop(0)[:-1]
             parts = uptime.split(',') # split on comma
-            # parts[0] = 00:00:00 up 00 days,
-            # parts[1] = 00:00,
-            # parts[2] = 0 users,
-            # parts[3] = load average: 0.00
-            # parts[4] = 0.00
-            # parts[5] = 0.00
-            #   or
-            # parts[0] = 00:00:00 up 00:00,
-            # parts[1] = 0 users,
-            # parts[2] = load average: 0.00
-            # parts[3] = 0.00
-            # parts[4] = 0.00
+            """
+              parts[0] = 00:00:00 up 00 days,
+              parts[1] = 00:00,
+              parts[2] = 0 users,
+              parts[3] = load average: 0.00
+              parts[4] = 0.00
+              parts[5] = 0.00
+                or
+              parts[0] = 00:00:00 up 00:00,
+              parts[1] = 0 users,
+              parts[2] = load average: 0.00
+              parts[3] = 0.00
+              parts[4] = 0.00
+            """
 
             # get how long we've been up, days or hours:
             utparts = parts[0].split()
-            # utparts[0] = time
-            # utparts[1] = 'up'
-            # utparts[2] = 00 (or 00:00:00)
-            # utparts[3] = 'days' (if utparts[2] is not a time)
+            """
+              utparts[0] = time
+              utparts[1] = 'up'
+              utparts[2] = 00 (or 00:00:00)
+              utparts[3] = 'days' (if utparts[2] is not a time)
+            """
 
             ut = utparts[2]
             if len(utparts) == 4: # we have a 'days' in there
@@ -223,9 +227,6 @@ while inp_index < inp_max:
     # create datedEntries using the datestamp for its keys:
     datedEntries[dateKey] = logEntries
 
-#    # grab a chunk of the file, up to "------":
-#    inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
-
 # create allSystems with the system name for its keys:
 allSystems[sysKey] = datedEntries
 
@@ -295,11 +296,6 @@ for sysname, datedEntries in allSystems.items():
 
                 if key != 'services' and key != 'ping test' and key != 'Uptime:':
                     inv_d[key] = logval
-
-
-##        extract values from specific key-
-#        values = entries['Mem:']
-#        print k1,values[0]
 
 # ----------------------------------------------------------------------------
 #

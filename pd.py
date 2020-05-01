@@ -194,16 +194,20 @@ def parseEntry(log_entry):
 # process()
 # ----------------------------------------------------------------------------
 def process(logfile):
+    """Takes a given log file and adds the data to the global allSystems
+    dictionary.
+    """
+
     inp_file = getContent(logfile)      # get entire file into inp_file
     inp_max = len(inp_file)             # lines in file
     inp_index = 0                       # current index into inp_file
+    cur_syskey = ''                     # current system name
 
     inp_entry = []                      # create local entry list
     out_entry = []                      # create local entry list
 
-    global allSystems                   # dictionary as sysname: datedEntries
     datedEntries = {}                   # dictionary as datestamp: logEntries
-    cur_syskey = ''                     # current syskey
+    global allSystems                   # dictionary as sysname: datedEntries
 
     while inp_index < inp_max:
         # declare logEntries here so we always have a fresh one
@@ -224,8 +228,10 @@ def process(logfile):
 
             if 'Datestring:' in thisKey:
                 logEntries[thisKey] = thisVal
+
             elif 'Datestamp:' in thisKey:
                 dateKey = thisVal[0]
+
             elif 'Sysname:' in thisKey:
                 if cur_syskey == '':
                     cur_syskey = thisVal[0]
@@ -235,6 +241,7 @@ def process(logfile):
                     cur_syskey = thisVal[0]
                 else:
                     sysKey = thisVal[0]
+
             else:
                 logEntries[thisKey] = thisVal
 
@@ -311,7 +318,7 @@ def analyze(systems):
                     if key != 'services' and key != 'ping test' and key != 'Uptime:':
                         inv_d[key] = logval
 
-        # final print to separate system reports
+        # final print to separate system reports:
         print
 
 #------------------------------------------------------------------------------
@@ -330,7 +337,6 @@ if __name__ == '__main__':
     else:
         arglist = sys.argv[1:]
 
-#    allSystems = process(inpfile)
     for inpfile in arglist:
         process(inpfile) # process() updates global allSystems{}
 

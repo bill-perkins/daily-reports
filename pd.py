@@ -278,9 +278,11 @@ def process(logfile):
 # analyze():
 # ----------------------------------------------------------------------------
 def analyze(systems):
+    """
+    """
+
     delta1 = timedelta(days = 1)
 
-    print
     print 'Analyzing:'
     print
 
@@ -298,7 +300,6 @@ def analyze(systems):
     # --- now we want to analyze some of the data:
     for sysname, datedEntries in systems.items():
         nexttime = date(2020,1,3)
-
         print 'sysname:', sysname
 
         # grab logs in date order:
@@ -314,7 +315,11 @@ def analyze(systems):
 
             # complain if we see something unexpected:
             if thistime != nexttime:
-                print cur_date, "expected datestamp:", nexttime, "- found:", thistime
+                if str(nexttime) == '2020-01-03':
+                    nexttime = thistime
+                    print cur_date, 'Logging starts:', thistime
+                else:
+                    print cur_date, "expected datestamp:", nexttime, "- found:", thistime
 
             # create a date object for the next day:
             nexttime = thistime + delta1

@@ -15,6 +15,7 @@ from datetime import timedelta
 import pprint # for development
 
 pp = pprint.PrettyPrinter(indent=2, width=160)
+allSystems = {}  # Global dictionary as sysname: datedEntries
 
 iam = sys.argv[0]
 
@@ -200,7 +201,7 @@ def process(logfile):
     inp_entry = []                      # create local entry list
     out_entry = []                      # create local entry list
 
-    allSystems = {}                     # dictionary as sysname: datedEntries
+    global allSystems                   # dictionary as sysname: datedEntries
     datedEntries = {}                   # dictionary as datestamp: logEntries
     cur_syskey = ''                     # current syskey
 
@@ -228,9 +229,7 @@ def process(logfile):
             elif 'Sysname:' in thisKey:
                 if cur_syskey == '':
                     cur_syskey = thisVal[0]
-#                    print "first syskey:", cur_syskey
                 if thisVal[0] != cur_syskey:
-#                    print "next  syskey:", thisVal[0]
                     allSystems[cur_syskey] = datedEntries
                     datedEntries = {}
                     cur_syskey = thisVal[0]
@@ -249,10 +248,12 @@ def process(logfile):
 # ----------------------------------------------------------------------------
 # analyze():
 # ----------------------------------------------------------------------------
-def analyze(allSystems):
+def analyze(systems):
     delta1 = timedelta(days = 1)
 
+    print
     print 'Analyzing:'
+    print
 
     # invariants dictionary
     inv_d = {'/': '', \
@@ -266,7 +267,7 @@ def analyze(allSystems):
             'Uptime:':   '' }
 
     # --- now we want to analyze some of the data:
-    for sysname, datedEntries in allSystems.items():
+    for sysname, datedEntries in systems.items():
         nexttime = date(2020,1,3)
 
         print 'sysname:', sysname
@@ -309,6 +310,8 @@ def analyze(allSystems):
 
                     if key != 'services' and key != 'ping test' and key != 'Uptime:':
                         inv_d[key] = logval
+
+        # final print to separate system reports
         print
 
 #------------------------------------------------------------------------------
@@ -323,11 +326,14 @@ def analyze(allSystems):
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        inpfile = 'daily.log'
+        arglist = ['daily.log']
     else:
-        inpfile = sys.argv[1]
+        arglist = sys.argv[1:]
 
-    allSystems = process(inpfile)
+#    allSystems = process(inpfile)
+    for inpfile in arglist:
+        process(inpfile) # process() updates global allSystems{}
+
     analyze(allSystems)
 
 # ----------------------------------------------------------------------------

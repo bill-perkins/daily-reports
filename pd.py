@@ -17,6 +17,9 @@ import pprint # for development
 pp = pprint.PrettyPrinter(indent=2, width=160)
 allSystems = {}  # Global dictionary as sysname: datedEntries
 curSysname = ''  # Global current system name from logfile
+
+# if a line starts with a day of the week, we want to add the
+# hostname to the line.
 starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
 
 iam = sys.argv[0]
@@ -231,9 +234,6 @@ def process(logfile):
         print "skipping."
         print
         return
-#    else:
-#        print 'cur_syskey:', cur_syskey
-
     curSysname = cur_syskey
 
     while inp_index < inp_max:
@@ -273,7 +273,6 @@ def process(logfile):
 
     # create allSystems with the system name for its keys:
     allSystems[curSysname] = datedEntries
-#    return allSystems
 
 # ----------------------------------------------------------------------------
 # analyze():

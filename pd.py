@@ -17,6 +17,7 @@ import pprint # for development
 pp = pprint.PrettyPrinter(indent=2, width=160)
 allSystems = {}  # Global dictionary as sysname: datedEntries
 curSysname = ''  # Global current system name from logfile
+starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
 
 iam = sys.argv[0]
 
@@ -63,9 +64,10 @@ def getEntry(inpdata, index, maxindex):
     while newindex < maxindex:
         outlist.append(inpdata[newindex])
         newindex += 1
+
         # Look ahead to the next line:
-        # If it starts with '----',
-        # increment newindex to move past the next line, and break out.
+        # If it starts with '----', increment newindex to
+        # move past the next line, and break out.
         if newindex < maxindex and inpdata[newindex][0:4] == '----':
             newindex += 1
             break
@@ -80,7 +82,7 @@ def parseEntry(log_entry):
     """Return a dictionary from a given log entry.
     """
     entry = []
-    starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
+    global starters
     global curSysname
 
     # parse each line:
@@ -89,8 +91,8 @@ def parseEntry(log_entry):
         if len(inpline) == 0:
             continue # skip blank lines
 
-        # see if we have to add given hostname to this line:
-        if inpline[0:4] in starters: # and curSysname != '':
+        # see if we have to add the hostname to this line:
+        if inpline[0:4] in starters:
             inpline = curSysname + ': ' + inpline
 
         # get system name, date, uptime, load average:
@@ -205,6 +207,8 @@ def process(logfile):
     dictionary.
     """
 
+    print 'processing:', logfile
+
     inp_file = getContent(logfile)      # get entire file into inp_file
     inp_max = len(inp_file)             # lines in file
     inp_index = 0                       # current index into inp_file
@@ -225,7 +229,10 @@ def process(logfile):
     if cur_syskey == '':
         print "couldn't find system hostnme in", logfile
         print "skipping."
+        print
         return
+#    else:
+#        print 'cur_syskey:', cur_syskey
 
     curSysname = cur_syskey
 
@@ -253,14 +260,10 @@ def process(logfile):
                 dateKey = thisVal[0]
 
             elif 'Sysname:' in thisKey:
-                if cur_syskey == '':
-                    cur_syskey = thisVal[0]
-                if thisVal[0] != cur_syskey:
-                    allSystems[cur_syskey] = datedEntries
+                if thisVal[0] != curSysname:
+                    allSystems[curSysname] = datedEntries
                     datedEntries = {}
-                    cur_syskey = thisVal[0]
-                else:
-                    sysKey = thisVal[0]
+                    curSysname = thisVal[0]
 
             else:
                 logEntries[thisKey] = thisVal
@@ -269,7 +272,7 @@ def process(logfile):
         datedEntries[dateKey] = logEntries
 
     # create allSystems with the system name for its keys:
-    allSystems[sysKey] = datedEntries
+    allSystems[curSysname] = datedEntries
 #    return allSystems
 
 # ----------------------------------------------------------------------------

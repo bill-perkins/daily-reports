@@ -22,6 +22,8 @@ curSysname = ''  # Global current system name from logfile
 # hostname to the line.
 starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
 
+oneday = timedelta(days = 1)
+
 iam = sys.argv[0]
 
 # ----------------------------------------------------------------------------
@@ -278,10 +280,11 @@ def process(logfile):
 # analyze():
 # ----------------------------------------------------------------------------
 def analyze(systems):
-    """
+    """Look for changing immutable values.
+       Immutable values are set by the first log entry processed.
     """
 
-    delta1 = timedelta(days = 1)
+    global oneday
 
     print 'Analyzing:'
     print
@@ -290,7 +293,7 @@ def analyze(systems):
     inv_d = {'/': '', \
             '/opt/sas':  '',   \
             '/sasdata':  '',   \
-            '/sastmp':    '',  \
+            '/sastmp':   '',   \
             'Mem:':      '',   \
             'Swap:':     '',   \
             'ping test': 'OK', \
@@ -315,35 +318,37 @@ def analyze(systems):
 
             # complain if we see something unexpected:
             if thistime != nexttime:
-                if str(nexttime) == '2020-01-03':
+                if str(nexttime) != '2020-01-03':
+                    print cur_date, "expected datestamp:", nexttime, "- found:", thistime
+                else:
                     nexttime = thistime
                     print cur_date, 'Logging starts:', thistime
-                else:
-                    print cur_date, "expected datestamp:", nexttime, "- found:", thistime
 
             # create a date object for the next day:
-            nexttime = thistime + delta1
+            nexttime = thistime + oneday
 
             """
-                search for changes to invariant data
-                when something comes up different, complain about it,
+                Search for changes to invariant data.
+                When something comes up different, complain about it,
                 then change the invariants list to the new value.
             """
-
             for key, value in inv_d.items():
-                if cur_entry.get(key, 'no') != 'no':
-                    logval = cur_entry[key][0]
-                    if key == 'Uptime:':
-                        if "days" not in logval:
-                            print cur_date, "Rebootied:", logval, "hours ago"
-                    elif len(value) > 0 and value != logval:
-                        if key == 'services':
-                            print cur_date, "Some services were down"
-                        else:
-                            print cur_date, key + ": expected: '" + value + "', found: '" + logval + "'"
+                try:
+                    val = cur_entry[key]
+                except KeyError as err:
+                    continue
 
-                    if key != 'services' and key != 'ping test' and key != 'Uptime:':
-                        inv_d[key] = logval
+                if key == 'Uptime:':
+                    if "days" not in val[0]:
+                        print cur_date, "Rebootied:", val[0], "hours ago"
+                elif len(value) > 0 and value != val[0]:
+                    if key == 'services':
+                        print cur_date, "Some services were down"
+                    else:
+                        print cur_date, key + ": expected: '" + value + "', found: '" + val[0] + "'"
+
+                if key != 'services' and key != 'ping test' and key != 'Uptime:':
+                    inv_d[key] = val[0]
 
         # final print to separate system reports:
         print

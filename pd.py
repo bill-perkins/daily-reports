@@ -16,6 +16,7 @@ import pprint # for development
 
 pp = pprint.PrettyPrinter(indent=2, width=160)
 allSystems = {}  # Global dictionary as sysname: datedEntries
+curSysname = ''  # Global current system name from logfile
 
 iam = sys.argv[0]
 
@@ -79,12 +80,18 @@ def parseEntry(log_entry):
     """Return a dictionary from a given log entry.
     """
     entry = []
+    starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
+    global curSysname
 
     # parse each line:
     while len(log_entry) > 0:
         inpline = log_entry.pop(0)[:-1]
         if len(inpline) == 0:
             continue # skip blank lines
+
+        # see if we have to add given hostname to this line:
+        if inpline[0:4] in starters: # and curSysname != '':
+            inpline = curSysname + ': ' + inpline
 
         # get system name, date, uptime, load average:
         if "corp.local" in inpline:
@@ -208,6 +215,19 @@ def process(logfile):
 
     datedEntries = {}                   # dictionary as datestamp: logEntries
     global allSystems                   # dictionary as sysname: datedEntries
+    global curSysname
+
+    for line in inp_file:
+        if 'corp.local' in line:
+            cur_syskey = line.split(':')[0]
+            break;
+
+    if cur_syskey == '':
+        print "couldn't find system hostnme in", logfile
+        print "skipping."
+        return
+
+    curSysname = cur_syskey
 
     while inp_index < inp_max:
         # declare logEntries here so we always have a fresh one
@@ -250,7 +270,7 @@ def process(logfile):
 
     # create allSystems with the system name for its keys:
     allSystems[sysKey] = datedEntries
-    return allSystems
+#    return allSystems
 
 # ----------------------------------------------------------------------------
 # analyze():

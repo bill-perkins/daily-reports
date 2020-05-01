@@ -290,14 +290,14 @@ def analyze(systems):
     print
 
     # invariants dictionary
-    inv_d = {'/': '', \
-            '/opt/sas':  '',   \
-            '/sasdata':  '',   \
-            '/sastmp':   '',   \
-            'Mem:':      '',   \
-            'Swap:':     '',   \
-            'ping test': 'OK', \
-            'services':  'OK', \
+    inv_d = {'/':        '', \
+            '/opt/sas':  '', \
+            '/sasdata':  '', \
+            '/sastmp':   '', \
+            'Mem:':      '', \
+            'Swap:':     '', \
+            'ping test': '', \
+            'services':  '', \
             'Uptime:':   '' }
 
     # --- now we want to analyze some of the data:
@@ -336,12 +336,22 @@ def analyze(systems):
                 try:
                     val = cur_entry[key]
                 except KeyError as err:
-                    continue
+                    continue # key not there? Who cares?
 
                 if key == 'Uptime:':
                     if "days" not in val[0]:
                         print cur_date, "Rebootied:", val[0], "hours ago"
-                elif len(value) > 0 and value != val[0]:
+                    continue
+
+                if key == 'services' and inv_d['services'] == '':
+                    inv_d['services'] = 'OK'
+                    print cur_date, 'first appearance of services check'
+
+                if key == 'ping test' and inv_d['ping test'] == '':
+                    inv_d['ping test'] = 'OK'
+                    print cur_date, 'first appearance of ping test'
+
+                if len(value) > 0 and value != val[0]:
                     if key == 'services':
                         print cur_date, "Some services were down"
                     else:

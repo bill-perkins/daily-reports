@@ -9,12 +9,14 @@
 import sys
 import os
 import time
+from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
-import pprint # for development
+## for debugging:
+#import pprint
+#pp = pprint.PrettyPrinter(indent=2, width=160)
 
-pp = pprint.PrettyPrinter(indent=2, width=160)
 allSystems = {}  # Global dictionary as sysname: datedEntries
 curSysname = ''  # Global current system name from logfile
 
@@ -57,7 +59,7 @@ def getEntry(inpdata, index, maxindex):
        until we see "----" in the line.
        input parameters:
            inpdata: list of lines from getContent()
-           index:   line # we start processing
+           index:   line # we start processing at
            maxindex: last line index of inpdata
        returns:
            newindex: next index to process
@@ -86,9 +88,9 @@ def getEntry(inpdata, index, maxindex):
 def parseEntry(log_entry):
     """Return a dictionary from a given log entry.
     """
-    entry = []
-    global starters
-    global curSysname
+    entry = []          # a list of key:value pairs
+    global starters     # the list of day names, Mon-Fri
+    global curSysname   # the name of the system we're currently working on
 
     # parse each line:
     while len(log_entry) > 0:
@@ -104,12 +106,12 @@ def parseEntry(log_entry):
         if "corp.local" in inpline:
             parts = inpline.split(': ')
 
-            entry.append(['Datestring:', parts[1]]) # entry date
-            datestamp = time.strptime(parts[1], "%a %b %d %H:%M:%S %Z %Y")
-            entry.append(['Datestamp:', str(datestamp.tm_year) + \
-                '%02d' % (datestamp.tm_mon) + \
-                '%02d' % (datestamp.tm_mday)])
-            entry.append(['Sysname:', parts[0]]) # system name
+#            datestamp = datetime.datetime.strptime(parts[1], "%a %b %d %H:%M:%S %Z %Y")
+            datestamp = datetime.strptime(parts[1], "%a %b %d %H:%M:%S %Z %Y")
+            entry.append(['Datestamp:', str(datestamp.date())])
+            entry.append(['Systime', str(datestamp.time())])
+            entry.append(['Datetime', datestamp])
+            entry.append(['Sysname', parts[0]]) # system name
 
             # snag the next line, it's got uptime, user count, load average
             uptime = log_entry.pop(0)[:-1]
@@ -225,6 +227,7 @@ def process(logfile):
     datedEntries = {}                   # dictionary as datestamp: logEntries
     global allSystems                   # dictionary as sysname: datedEntries
     global curSysname
+    curSystime = ''                     # system time of this entry
 
     for line in inp_file:
         if 'corp.local' in line:
@@ -255,18 +258,17 @@ def process(logfile):
             thisKey = x[0]
             thisVal = x[1:]
 
-            if 'Datestring:' in thisKey:
-                logEntries[thisKey] = thisVal
-
-            elif 'Datestamp:' in thisKey:
+            if 'Datestamp:' in thisKey:
                 dateKey = thisVal[0]
-
-            elif 'Sysname:' in thisKey:
+            elif 'Systime:' in thisKey:
+                curSystime = thisKey
+            elif 'Sysname' in thisKey:
                 if thisVal[0] != curSysname:
                     allSystems[curSysname] = datedEntries
                     datedEntries = {}
                     curSysname = thisVal[0]
-
+            elif 'Datetime' in thisKey:
+                logEntries[thisKey] = thisVal
             else:
                 logEntries[thisKey] = thisVal
 
@@ -315,8 +317,8 @@ def analyze(systems):
 
             # get a date object for this datestamp:
             thisdate = date(int(datestamp[0:4]), \
-                    int(datestamp[4:6]), \
-                    int(datestamp[6:8]))
+                    int(datestamp[5:7]), \
+                    int(datestamp[8:10]))
 
             # complain if we see something unexpected:
             if thisdate != nexttime:
@@ -341,8 +343,14 @@ def analyze(systems):
                     continue # key not there? Who cares?
 
                 if key == 'Uptime:':
-                    if "days" not in val[0]:
-                        print thisdate, "Rebootied:", val[0], "hours ago"
+                    # Did we reboot?
+                    if 'days' not in val[0]:
+                        hm = val[0].split(':')
+#                        dTime = datetime.timedelta(hours = int(hm[0]), minutes = int(hm[1]))
+                        dTime = timedelta(hours = int(hm[0]), minutes = int(hm[1]))
+                        cTime = cur_entry['Datetime'][0]
+                        rebooted = cTime - dTime
+                        print rebooted.date(), "Reboot @", rebooted.time()
                     continue
 
                 if key == 'services' and inv_d['services'] == '':
@@ -355,7 +363,7 @@ def analyze(systems):
 
                 if len(value) > 0 and value != val[0]:
                     if key == 'services':
-                        print thisdate, "Some services were down"
+                        print thisdate, 'Some services were down'
                     else:
                         print thisdate, key + ": expected: '" + value + \
                                 "', found: '" + val[0] + "'"

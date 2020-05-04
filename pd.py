@@ -286,7 +286,7 @@ def analyze(systems):
 
     global oneday
 
-    print 'Analyzing:'
+#    print 'Analyzing:'
     print
 
     # invariants dictionary
@@ -303,7 +303,8 @@ def analyze(systems):
     # --- now we want to analyze some of the data:
     for sysname, datedEntries in systems.items():
         nexttime = date(2020,1,3)
-        print 'sysname:', sysname
+        print 'Analyzing system', sysname + ':'
+        print
 
         # grab logs in date order:
         for datestamp in sorted(datedEntries):
@@ -311,7 +312,6 @@ def analyze(systems):
                 continue    # somehow, we get a blank datestamp. Skip it.
 
             cur_entry = datedEntries[datestamp] # cur_entry is the dictionary for this datestamp
-            cur_date = cur_entry['Datestring:'][0] + ':'
 
             # get a date object for this datestamp:
             thistime = date(int(datestamp[0:4]), int(datestamp[4:6]), int(datestamp[6:8]))
@@ -319,10 +319,10 @@ def analyze(systems):
             # complain if we see something unexpected:
             if thistime != nexttime:
                 if str(nexttime) != '2020-01-03':
-                    print cur_date, "expected datestamp:", nexttime, "- found:", thistime
+                    print thistime, "expected datestamp:", nexttime, "- found:", thistime
                 else:
                     nexttime = thistime
-                    print cur_date, 'Logging starts:', thistime
+                    print thistime, 'Logging starts'
 
             # create a date object for the next day:
             nexttime = thistime + oneday
@@ -340,22 +340,22 @@ def analyze(systems):
 
                 if key == 'Uptime:':
                     if "days" not in val[0]:
-                        print cur_date, "Rebootied:", val[0], "hours ago"
+                        print thistime, "Rebootied:", val[0], "hours ago"
                     continue
 
                 if key == 'services' and inv_d['services'] == '':
                     inv_d['services'] = 'OK'
-                    print cur_date, 'first appearance of services check'
+                    print thistime, 'first appearance of services check'
 
                 if key == 'ping test' and inv_d['ping test'] == '':
                     inv_d['ping test'] = 'OK'
-                    print cur_date, 'first appearance of ping test'
+                    print thistime, 'first appearance of ping test'
 
                 if len(value) > 0 and value != val[0]:
                     if key == 'services':
-                        print cur_date, "Some services were down"
+                        print thistime, "Some services were down"
                     else:
-                        print cur_date, key + ": expected: '" + value + "', found: '" + val[0] + "'"
+                        print thistime, key + ": expected: '" + value + "', found: '" + val[0] + "'"
 
                 if key != 'services' and key != 'ping test' and key != 'Uptime:':
                     inv_d[key] = val[0]

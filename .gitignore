@@ -1,8 +1,6 @@
 *.swp
 daily.log*
-new-single
 out*
 *log
 trythis
-multiples
-no-single
+tests

@@ -204,9 +204,10 @@ def parseEntry(log_entry):
             else:
                 entry.append(['services', 'some services are DOWN:'])
                 inpline = log_entry.pop(0)[:-1]
-                downlist = ''   # list of downed services
+                downlist = []   # list of downed services
                 while len(inpline) > 1:
-                    downlist += inpline + '\n'
+                    parts = inpline.split()
+                    downlist.append(parts[0])
                     inpline = log_entry.pop(0)[:-1]
 
                 entry.append(['DOWN', downlist])
@@ -373,8 +374,10 @@ def analyze(systems):
                     if key == 'services':
                         print thisdate, 'Some services were down:'
                         downlist = cur_entry['DOWN']
-                        for dLine in downlist:
+                        dLines = downlist[0]
+                        for dLine in dLines:
                             print '          ', dLine
+                        print
                     else:
                         print thisdate, key + ": expected: '" + value + \
                                 "', found: '" + val[0] + "'"

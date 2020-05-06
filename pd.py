@@ -106,7 +106,6 @@ def parseEntry(log_entry):
         if "corp.local" in inpline:
             parts = inpline.split(': ')
 
-#            datestamp = datetime.datetime.strptime(parts[1], "%a %b %d %H:%M:%S %Z %Y")
             datestamp = datetime.strptime(parts[1], "%a %b %d %H:%M:%S %Z %Y")
             entry.append(['Datestamp:', str(datestamp.date())])
             entry.append(['Systime', str(datestamp.time())])
@@ -355,7 +354,6 @@ def analyze(systems):
                     # Did we reboot?
                     if 'days' not in val[0]:
                         hm = val[0].split(':')
-#                        dTime = datetime.timedelta(hours = int(hm[0]), minutes = int(hm[1]))
                         dTime = timedelta(hours = int(hm[0]), minutes = int(hm[1]))
                         cTime = cur_entry['Datetime'][0]
                         rebooted = cTime - dTime
@@ -372,11 +370,16 @@ def analyze(systems):
 
                 if len(value) > 0 and value != val[0]:
                     if key == 'services':
-                        print thisdate, 'Some services were down:'
                         downlist = cur_entry['DOWN']
                         dLines = downlist[0]
-                        for dLine in dLines:
-                            print '          ', dLine
+                        if len(dLines) == 1:
+                            print thisdate, '1 service was down:'
+                            print '          ', dLines[0]
+                        else:
+                            print thisdate, len(dLines), 'services were down:'
+                            for dLine in dLines:
+                                print '          ', dLine
+                        # final print to separate downed services:
                         print
                     else:
                         print thisdate, key + ": expected: '" + value + \
@@ -386,6 +389,8 @@ def analyze(systems):
                         and key != 'ping test' \
                         and key != 'Uptime:':
                     inv_d[key] = val[0]
+
+        print datestamp, "Final entry"
 
         # final print to separate system reports:
         print

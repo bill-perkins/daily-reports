@@ -14,8 +14,8 @@ from datetime import date
 from datetime import timedelta
 
 ## for debugging:
-#import pprint
-#pp = pprint.PrettyPrinter(indent=2, width=160)
+import pprint
+pp = pprint.PrettyPrinter(indent=2, width=160)
 
 allSystems = {}  # Global dictionary as sysname: datedEntries
 curSysname = ''  # Global current system name from logfile
@@ -103,10 +103,11 @@ def parseEntry(log_entry):
             inpline = curSysname + ': ' + inpline
 
         # get system name, date, uptime, load average:
-        if "corp.local" in inpline:
+        if "corp.local" in inpline and ' ping ' not in inpline:
             parts = inpline.split(': ')
 
             datestamp = datetime.strptime(parts[1], "%a %b %d %H:%M:%S %Z %Y")
+
             entry.append(['Datestamp:', str(datestamp.date())])
             entry.append(['Systime', str(datestamp.time())])
             entry.append(['Datetime', datestamp])
@@ -242,8 +243,9 @@ def process(logfile):
             cur_syskey = line.split(':')[0]
             break;
 
+    # set curSysname so we have it when we start parsing stuff
     if cur_syskey == '':
-        print "couldn't find system hostnme in", logfile
+        print "couldn't find system hostname in", logfile
         print "skipping."
         print
         return
@@ -306,8 +308,6 @@ def analyze(systems):
             'ping test': '', \
             'services':  '', \
             'Uptime:':   '' }
-
-    print # to separate 'processing' lines from 'Analyzing' lines
 
     # --- now we want to analyze some of the data:
     for sysname, datedEntries in systems.items():
@@ -395,12 +395,87 @@ def analyze(systems):
         # final print to separate system reports:
         print
 
-#------------------------------------------------------------------------------
-# pretty-print the resulting dictionary:
-#print "allSystems:"
-#print
-#pp.pprint(allSystems)
-#print
+# -----------------------------------------------------------------------------
+# humanize(number)
+# -----------------------------------------------------------------------------
+def humanize(f):
+    """turn a number into human-readable format
+    """
+    if f < 1024:
+        return str(f) + "B"
+
+    if f < (1024 * 1024):
+        return '{:3.1f}'.format(f / 1024.0) + "K"
+
+    if f < (1024 * 1024 * 1024):
+        return '{:3.1f}'.format(f / 1024.0 / 1024) + "M"
+
+    if f < (1024 * 1024 * 1024 * 1024):
+        return '{:3.1f}'.format(f / 1024.0 / 1024 / 1024) + "G"
+
+    return '{:3.1f}'.format(f / 1024.0 / 1024 / 1024 / 1024) + "T"
+
+# ----------------------------------------------------------------------------
+# to_bytes()
+# ----------------------------------------------------------------------------
+def to_bytes(s):
+    if 'G' in s:
+        v = float(s[:-1]) * 1024 * 1024 * 1024
+    elif 'M' in s:
+        v = float(s[:-1]) * 1024 * 1024
+    elif 'K' in s:
+        v = float(s[:-1]) * 1024
+    elif '%' in s:
+        v = float(s[:-1])
+    else:
+        v = float(s)
+
+    return v
+
+# ----------------------------------------------------------------------------
+# analyze_disk()
+# ----------------------------------------------------------------------------
+def analyze_disk(systems, which_disk):
+    """Analyze the root disk entries in systems{}
+    """
+    for sysname, datedEntries in systems.items():
+        print 'Analyzing',  which_disk, 'file system of', sysname + ':'
+        print
+
+        total = list()
+        used = list()
+        avail = list()
+        usep = list()
+
+        # grab logs in date order:
+        for datestamp in sorted(datedEntries):
+            if datestamp == '':
+                continue    # somehow, we get a blank datestamp. Skip it.
+
+            # cur_entry is the dictionary for this datestamp
+            cur_entry = datedEntries[datestamp]
+
+            # get a date object for this datestamp:
+            thisdate = date(int(datestamp[0:4]), \
+                    int(datestamp[5:7]), \
+                    int(datestamp[8:10]))
+
+            try:
+                values = cur_entry[which_disk]
+            except KeyError as err:
+                continue # key not there? Who cares? in this case, it should be...
+
+            t, u, a, p = values
+
+            total.append(to_bytes(t))
+            used.append(to_bytes(u))
+            avail.append(to_bytes(a))
+            usep.append(to_bytes(p))
+
+        print "used avg :", humanize(sum(used) / len(used))
+        print "avail avg:", humanize(sum(avail) / len(avail))
+        print "pct avg  :", str(round(sum(usep) / len(usep), 1)) + "%"
+        print
 
 # ----------------------------------------------------------------------------
 # main() part of the program
@@ -414,7 +489,20 @@ if __name__ == '__main__':
     for inpfile in arglist:
         process(inpfile) # process() updates global allSystems{}
 
-    analyze(allSystems)
+    print
+
+    # analyze(allSystems)
+    analyze_disk(allSystems, '/')
+    analyze_disk(allSystems, '/opt/sas')
+    analyze_disk(allSystems, '/sasdata')
+    analyze_disk(allSystems, '/sastmp')
+
+##------------------------------------------------------------------------------
+## pretty-print the resulting dictionary:
+#print "allSystems:"
+#print
+#pp.pprint(allSystems)
+#print
 
 # ----------------------------------------------------------------------------
 #

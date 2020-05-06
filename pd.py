@@ -13,6 +13,9 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
+# why isn't this available?
+#from statistics import mean
+
 ## for debugging:
 import pprint
 pp = pprint.PrettyPrinter(indent=2, width=160)
@@ -436,7 +439,7 @@ def to_bytes(s):
 # analyze_disk()
 # ----------------------------------------------------------------------------
 def analyze_disk(systems, which_disk):
-    """Analyze the root disk entries in systems{}
+    """Analyze the disk entries in systems{}
     """
     for sysname, datedEntries in systems.items():
         print 'Analyzing',  which_disk, 'file system of', sysname + ':'
@@ -472,10 +475,59 @@ def analyze_disk(systems, which_disk):
             avail.append(to_bytes(a))
             usep.append(to_bytes(p))
 
-        print "used avg :", humanize(sum(used) / len(used))
-        print "avail avg:", humanize(sum(avail) / len(avail))
-        print "pct avg  :", str(round(sum(usep) / len(usep), 1)) + "%"
+        used_avg = sum(used) / len(used)
+        avail_avg = sum(avail) / len(avail)
+        usep_avg = sum(usep) / len(usep)
+
+        used_min = int(used_avg * 0.85)
+        used_max = int(used_avg * 1.15)
+
+        print 'used avg :', humanize(used_avg)
+        print 'avail avg:', humanize(avail_avg)
+        print 'pct avg  :', str(round(usep_avg, 1)) + '%'
         print
+
+        # analyze used v used_avg:
+        # grab logs in date order:
+        was = 0
+        for datestamp in sorted(datedEntries):
+            if datestamp == '':
+                continue    # somehow, we get a blank datestamp. Skip it.
+
+            # cur_entry is the dictionary for this datestamp
+            cur_entry = datedEntries[datestamp]
+
+            # get a date object for this datestamp:
+            thisdate = date(int(datestamp[0:4]), \
+                    int(datestamp[5:7]), \
+                    int(datestamp[8:10]))
+
+            try:
+                values = cur_entry[which_disk]
+            except KeyError as err:
+                continue # key not there? Who cares? in this case, it should be...
+
+            t, u, a, p = values
+
+            if was == 0:
+                was = to_bytes(u)
+            else:
+                new = abs(was - to_bytes(u))
+                if new > 0:
+                    if new > was / 10.0:
+                        print thisdate, which_disk, "usage:", u, "was:", humanize(was)
+                        was = to_bytes(u)
+
+
+#            ux = to_bytes(u)
+#            if ux < used_min or ux > used_max:
+#                print thisdate, which_disk, "usage:", u, "avg:", humanize(used_avg)
+
+#        set_usep = set(usep)
+#        print 'len(usep):', len(usep)
+#        print 'len(set_usep):', len(set_usep)
+#        print 'set_usep:', set_usep
+#        print 'set_usep avg:', str(round(sum(set_usep) / len(set_usep), 1)) + '%'
 
 # ----------------------------------------------------------------------------
 # main() part of the program

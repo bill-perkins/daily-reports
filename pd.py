@@ -20,7 +20,12 @@ from statistics import mean
 #import pprint
 #pp = pprint.PrettyPrinter(indent=2, width=160)
 
-## imports result in .pyc files:
+## if we do this, we have to qualify the functions
+## in utils: i.e. utils.humanize(n)
+#import utils
+#
+## so instead, we do this:
+## (imports result in .pyc files)
 from utils import *
 
 # if a line starts with a day of the week, we want to add the
@@ -44,9 +49,9 @@ def getContent(filename):
 
     logcontent = []
 
-    # open up the new file, bring it in as a list:
+    # open given filename, bring it in as a list:
     try:
-        with open(filename, "r") as inpfile:
+        with open(filename, 'r') as inpfile:
             logcontent = inpfile.readlines()
 
     except IOError as err:
@@ -59,38 +64,30 @@ def getContent(filename):
 # getEntry(inpdata, index, maxindex)
 # ----------------------------------------------------------------------------
 def getEntry(inpdata, index, maxindex):
-    """Bring in the lines from current index,
-       until we see "----" in the line.
-       input parameters:
-           inpdata: list of lines from getContent()
-           index:   line # we start processing at
-           maxindex: last line index of inpdata
-       returns:
-           nextline: next line to process
-           list of lines in this entry
+    """ Bring in lines from current index, until we see '----'.
+            inpdata:  list of lines from getContent()
+            index:    line # we start processing at
+            maxindex: last line index of inpdata
+
+        returns:
+            nextline: next line to process
+            outlist:  list of lines in this entry
     """
 
     nextline = index
     outlist = []
-    while nextline < maxindex:
+
+    while nextline < maxindex and inpdata[nextline][0:4] != '----':
         outlist.append(inpdata[nextline])
         nextline += 1
 
-        # Look ahead to the next line:
-        # If it starts with '----', increment nextline to
-        # move past the next line, and break out.
-        if nextline < maxindex and inpdata[nextline][0:4] == '----':
-            nextline += 1
-            break
-
-    # return the new index and the output list
-    return nextline, outlist
+    return nextline + 1, outlist
 
 # ----------------------------------------------------------------------------
 # parseEntry(log_entry)
 # ----------------------------------------------------------------------------
 def parseEntry(log_entry):
-    """Return a dictionary from a given log entry.
+    """ Return a dictionary from a given log entry.
     """
     entry = []          # a list of key:value pairs
     global starters     # the list of day names, Mon-Fri
@@ -107,10 +104,10 @@ def parseEntry(log_entry):
             inpline = curSysname + ': ' + inpline
 
         # get system name, date, uptime, load average:
-        if "corp.local" in inpline and ' ping ' not in inpline:
+        if 'corp.local' in inpline and ' ping ' not in inpline:
             parts = inpline.split(': ')
 
-            datestamp = datetime.strptime(parts[1], "%a %b %d %H:%M:%S %Z %Y")
+            datestamp = datetime.strptime(parts[1], '%a %b %d %H:%M:%S %Z %Y')
 
             entry.append(['Datestamp:', str(datestamp.date())])
             entry.append(['Systime', str(datestamp.time())])
@@ -161,7 +158,7 @@ def parseEntry(log_entry):
             continue
 
         # get memory/cache and swap elements:
-        if "buff/cache" in inpline: # we have the header; use it
+        if 'buff/cache' in inpline: # we have the header; use it
             memhdr = ['Memhdr:']
             memhdr.extend(inpline.split())
 
@@ -190,11 +187,11 @@ def parseEntry(log_entry):
             continue
 
         # get disk usages:
-        if "Use%" in inpline:
+        if 'Use%' in inpline:
             entry.append(['Diskhdr:', 'Size', 'Used', 'Avail', 'Use%'])
             while len(inpline) > 1 and log_entry:
                 inpline = log_entry.pop(0)[:-1]
-                if len(inpline) > 0 and "----" not in inpline:
+                if len(inpline) > 0 and '----' not in inpline:
                     parts = inpline.split()
                     entry.append([parts[5], \
                             to_bytes(parts[1]), \
@@ -205,14 +202,14 @@ def parseEntry(log_entry):
             continue
 
         # check ping test:
-        if "ping test" in inpline:
+        if 'ping test' in inpline:
             pingparts = inpline.split()
             entry.append(['ping test', pingparts[2]])
 
             continue
 
         # check services:
-        if "services" in inpline:
+        if 'services' in inpline:
             if inpline.split()[2] == 'OK':
                 entry.append(['services', 'OK'])
             else:
@@ -260,7 +257,7 @@ def process(logfile):
     # set curSysname so we have it when we start parsing stuff
     if cur_syskey == '':
         print("couldn't find system hostname in", logfile)
-        print("skipping.")
+        print('skipping.')
         print()
         return
     curSysname = cur_syskey
@@ -270,7 +267,12 @@ def process(logfile):
         logEntries = {}  # dictionary with log parameter as key, value as value
 
         # read in a full log entry:
-        inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
+#        print('inp_index:', inp_index,'inp_max:', inp_max)
+        try:
+            inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
+        except TypeError as err:
+            print('break;')
+            break
 
         # parse the entry into a list of key:value pairs
         out_entry = parseEntry(inp_entry)
@@ -345,7 +347,7 @@ def analyze(systems):
             # complain if we see something unexpected:
             if thisdate != nexttime:
                 if str(nexttime) != '2020-01-03':
-                    print(thisdate, "expected datestamp:", nexttime)
+                    print(thisdate, 'expected datestamp:', nexttime)
                 else:
                     nexttime = thisdate
                     print(thisdate, 'Logging starts')
@@ -371,7 +373,7 @@ def analyze(systems):
                         dTime = timedelta(hours = int(hm[0]), minutes = int(hm[1]))
                         cTime = cur_entry['Datetime'][0]
                         rebooted = cTime - dTime
-                        print(rebooted.date(), "Reboot @", rebooted.time())
+                        print(rebooted.date(), 'Reboot @', rebooted.time())
                     continue
 
                 if key == 'services' and inv_d['services'] == '':
@@ -404,7 +406,7 @@ def analyze(systems):
                         and key != 'Uptime:':
                     inv_d[key] = val[0]
 
-        print(datestamp, "Final entry")
+        print(datestamp, 'Final entry')
 
         # final print to separate system reports:
         print()
@@ -489,7 +491,7 @@ def analyze_disk(systems, which_disk):
                 diff = abs(was - p)
                 if diff > 0:
                     if diff > was * 0.21:
-                        print(thisdate, which_disk, "usage:", str(int(p)) + '%', "was:", str(int(was)) + '%')
+                        print(thisdate, which_disk, 'usage:', str(int(p)) + '%', 'was:', str(int(was)) + '%')
 
                     was = p
     print()
@@ -516,7 +518,7 @@ if __name__ == '__main__':
 
 ##------------------------------------------------------------------------------
 ## pretty-print the resulting dictionary:
-#print "allSystems:"
+#print 'allSystems:'
 #print
 #pp.pprint(allSystems)
 #print

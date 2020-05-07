@@ -28,7 +28,9 @@ def ms2bytes(s):
 # to_bytes()- change strings with 'G', 'M', 'K', '%' to appropriate numbers
 # ----------------------------------------------------------------------------
 def to_bytes(s):
-    if 'G' in s:
+    if 'T' in s:
+        v = float(s[:-1]) * 1024 * 1024 * 1024 * 1024
+    elif 'G' in s:
         v = float(s[:-1]) * 1024 * 1024 * 1024
     elif 'M' in s:
         v = float(s[:-1]) * 1024 * 1024
@@ -41,3 +43,4 @@ def to_bytes(s):
 
     return v
 
+# EOF:

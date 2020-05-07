@@ -510,24 +510,17 @@ def analyze_disk(systems, which_disk):
             t, u, a, p = values
 
             if was == 0:
-                was = to_bytes(u)
+#                was = to_bytes(u)
+                was = to_bytes(p)
             else:
-                new = abs(was - to_bytes(u))
-                if new > 0:
-                    if new > was / 10.0:
-                        print thisdate, which_disk, "usage:", u, "was:", humanize(was)
-                        was = to_bytes(u)
+                diff = abs(was - to_bytes(p))
+                if diff > 0:
+                    if diff > was * 0.21:
+                        print thisdate, which_disk, "usage:", p, "was:", str(int(was)) + '%'
 
-
-#            ux = to_bytes(u)
-#            if ux < used_min or ux > used_max:
-#                print thisdate, which_disk, "usage:", u, "avg:", humanize(used_avg)
-
-#        set_usep = set(usep)
-#        print 'len(usep):', len(usep)
-#        print 'len(set_usep):', len(set_usep)
-#        print 'set_usep:', set_usep
-#        print 'set_usep avg:', str(round(sum(set_usep) / len(set_usep), 1)) + '%'
+#                    was = to_bytes(u)
+                    was = to_bytes(p)
+    print
 
 # ----------------------------------------------------------------------------
 # main() part of the program

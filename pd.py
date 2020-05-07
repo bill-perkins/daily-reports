@@ -17,8 +17,10 @@ from datetime import timedelta
 #from statistics import mean
 
 ## for debugging:
-import pprint
-pp = pprint.PrettyPrinter(indent=2, width=160)
+#import pprint
+#pp = pprint.PrettyPrinter(indent=2, width=160)
+
+from utils import *
 
 allSystems = {}  # Global dictionary as sysname: datedEntries
 curSysname = ''  # Global current system name from logfile
@@ -65,25 +67,25 @@ def getEntry(inpdata, index, maxindex):
            index:   line # we start processing at
            maxindex: last line index of inpdata
        returns:
-           newindex: next index to process
+           nextline: next line to process
            list of lines in this entry
     """
 
-    newindex = index
+    nextline = index
     outlist = []
-    while newindex < maxindex:
-        outlist.append(inpdata[newindex])
-        newindex += 1
+    while nextline < maxindex:
+        outlist.append(inpdata[nextline])
+        nextline += 1
 
         # Look ahead to the next line:
-        # If it starts with '----', increment newindex to
+        # If it starts with '----', increment nextline to
         # move past the next line, and break out.
-        if newindex < maxindex and inpdata[newindex][0:4] == '----':
-            newindex += 1
+        if nextline < maxindex and inpdata[nextline][0:4] == '----':
+            nextline += 1
             break
 
     # return the new index and the output list
-    return newindex, outlist
+    return nextline, outlist
 
 # ----------------------------------------------------------------------------
 # parseEntry(log_entry)
@@ -398,43 +400,6 @@ def analyze(systems):
         # final print to separate system reports:
         print
 
-# -----------------------------------------------------------------------------
-# humanize(number)
-# -----------------------------------------------------------------------------
-def humanize(f):
-    """turn a number into human-readable format
-    """
-    if f < 1024:
-        return str(f) + "B"
-
-    if f < (1024 * 1024):
-        return '{:3.1f}'.format(f / 1024.0) + "K"
-
-    if f < (1024 * 1024 * 1024):
-        return '{:3.1f}'.format(f / 1024.0 / 1024) + "M"
-
-    if f < (1024 * 1024 * 1024 * 1024):
-        return '{:3.1f}'.format(f / 1024.0 / 1024 / 1024) + "G"
-
-    return '{:3.1f}'.format(f / 1024.0 / 1024 / 1024 / 1024) + "T"
-
-# ----------------------------------------------------------------------------
-# to_bytes()
-# ----------------------------------------------------------------------------
-def to_bytes(s):
-    if 'G' in s:
-        v = float(s[:-1]) * 1024 * 1024 * 1024
-    elif 'M' in s:
-        v = float(s[:-1]) * 1024 * 1024
-    elif 'K' in s:
-        v = float(s[:-1]) * 1024
-    elif '%' in s:
-        v = float(s[:-1])
-    else:
-        v = float(s)
-
-    return v
-
 # ----------------------------------------------------------------------------
 # analyze_disk()
 # ----------------------------------------------------------------------------
@@ -466,7 +431,7 @@ def analyze_disk(systems, which_disk):
             try:
                 values = cur_entry[which_disk]
             except KeyError as err:
-                continue # key not there? Who cares? in this case, it should be...
+                continue # key not there? Who cares? in this case, we should ...
 
             t, u, a, p = values
 
@@ -475,9 +440,9 @@ def analyze_disk(systems, which_disk):
             avail.append(to_bytes(a))
             usep.append(to_bytes(p))
 
-        used_avg = sum(used) / len(used)
+        used_avg  = sum(used)  / len(used)
         avail_avg = sum(avail) / len(avail)
-        usep_avg = sum(usep) / len(usep)
+        usep_avg  = sum(usep)  / len(usep)
 
         used_min = int(used_avg * 0.85)
         used_max = int(used_avg * 1.15)
@@ -510,7 +475,6 @@ def analyze_disk(systems, which_disk):
             t, u, a, p = values
 
             if was == 0:
-#                was = to_bytes(u)
                 was = to_bytes(p)
             else:
                 diff = abs(was - to_bytes(p))
@@ -518,7 +482,6 @@ def analyze_disk(systems, which_disk):
                     if diff > was * 0.21:
                         print thisdate, which_disk, "usage:", p, "was:", str(int(was)) + '%'
 
-#                    was = to_bytes(u)
                     was = to_bytes(p)
     print
 

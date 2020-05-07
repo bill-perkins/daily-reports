@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # fixdaily.py: stolen from std.py, the 'standard' python program
 
@@ -22,7 +22,7 @@ def getContent(filename):
             output = inpfile.readlines()
 
     except IOError as err:
-        print "getContent(): Couldn't open file " + filename + ": " + str(err)
+        print("getContent(): Couldn't open file " + filename + ": " + str(err))
 #        sys.exit(1)
 
     return output
@@ -40,9 +40,9 @@ if __name__ == '__main__':
     starters = [ 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun' ]
     for line in inplines:
         if line[0:3] in starters:
-            print hostname + ": " + line.strip()
+            print(hostname + ": " + line.strip())
         else:
-            print line.strip()
+            print(line.strip())
 
 
 # ----------------------------------------------------------------------------

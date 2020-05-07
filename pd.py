@@ -237,7 +237,7 @@ def process(logfile):
             break;
 
     if cur_syskey == '':
-        print("can't find system hostname in", logfile, 'using:', logfile)
+        print("can't find system hostname in", logfile)
         print('...skipping...')
         print()
         return

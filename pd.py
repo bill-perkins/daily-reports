@@ -39,29 +39,6 @@ oneday = timedelta(days = 1) # Global timedelta of one day
 iam = sys.argv[0]            # Global program name
 
 # ----------------------------------------------------------------------------
-# getContent(filename)
-# ----------------------------------------------------------------------------
-def getContent(filename):
-    """bring the contents of the given input file into a list,
-       and return the list.
-       filename: name of the file we're processing (daily.log)
-       returns:  list of lines from given file
-    """
-
-    logcontent = []
-
-    # open given filename, bring it in as a list:
-    try:
-        with open(filename, 'r') as inpfile:
-            logcontent = inpfile.readlines()
-
-    except IOError as err:
-        print(iam + ': getContent():', str(err))
-        sys.exit(0)
-
-    return logcontent
-
-# ----------------------------------------------------------------------------
 # getEntry(inpdata, index, maxindex)
 # ----------------------------------------------------------------------------
 def getEntry(inpdata, index, maxindex):
@@ -107,7 +84,8 @@ def parseEntry(log_entry):
             inpline = curSysname + ': ' + inpline
 
         # get system name, date, uptime, load average:
-        if 'corp.local' in inpline and ' ping ' not in inpline:
+#        if 'corp.local' in inpline and ' ping ' not in inpline:
+        if ' EST ' in inpline or ' EDT ' in inpline:
             parts = inpline.split(': ')
 
             datestamp = datetime.strptime(parts[1], '%a %b %d %H:%M:%S %Z %Y')
@@ -215,7 +193,7 @@ def parseEntry(log_entry):
             if inpline.split()[2] == 'OK':
                 entry.append(['services', 'OK'])
             else:
-                entry.append(['services', 'some services are DOWN:'])
+                entry.append(['services', 'some services were DOWN:'])
                 inpline = log_entry.pop()
                 downlist = []   # list of downed services
                 while len(inpline) > 1:
@@ -232,15 +210,15 @@ def parseEntry(log_entry):
 # process()
 # ----------------------------------------------------------------------------
 def process(logfile):
-    """Takes a given log file and adds the data to the global allSystems
-    dictionary.
+    """ Take a given log file and adds the data to the
+        global allSystems dictionary.
     """
 
     print('processing:', logfile)
 
     inp_file = getContent(logfile)      # get entire file into inp_file
     inp_max = len(inp_file)             # lines in file
-    inp_index = 0                       # current index into inp_file
+    next_ix = 0                         # current index into inp_file
     cur_syskey = ''                     # current system name
 
     inp_entry = []                      # create local entry list
@@ -249,32 +227,34 @@ def process(logfile):
     datedEntries = {}                   # dictionary as datestamp: logEntries
     global allSystems                   # dictionary as sysname: datedEntries
     global curSysname
+
     curSystime = ''                     # system time of this entry
 
+    # get the hostname out of the log file:
     for line in inp_file:
-        if 'corp.local' in line:
+        if 'corp.local' in line and ' ping ' not in line:
             cur_syskey = line.split(':')[0]
             break;
 
-    # set curSysname so we have it when we start parsing stuff
     if cur_syskey == '':
-        print("couldn't find system hostname in", logfile)
-        print('skipping.')
+        print("can't find system hostname in", logfile, 'using:', logfile)
+        print('...skipping...')
         print()
         return
+
     curSysname = cur_syskey
 
-    while inp_index < inp_max:
-        # declare logEntries here so we always have a fresh one
+    while next_ix < inp_max:
+        # declare logEntries here so we always have a fresh one:
         logEntries = {}  # dictionary with log parameter as key, value as value
 
         # read in a full log entry:
-        inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
+        next_ix, inp_entry = getEntry(inp_file, next_ix, inp_max)
 
-        # parse the entry into a list of key:value pairs
+        # parse inp_entry into a list of key:value pairs in out_entry
         out_entry = parseEntry(inp_entry)
 
-        # put the key:value pairs into the logEntries;
+        # put the key:value pairs into logEntries;
         # handle Datestring, Datestamp, and Sysname special:
         dateKey = ''    # fresh dateKey
         for x in out_entry:
@@ -288,7 +268,7 @@ def process(logfile):
             elif 'Sysname' in thisKey:
                 if thisVal[0] != curSysname:
                     allSystems[curSysname] = datedEntries
-                    datedEntries = {}
+                    datedEntries = {} # refresh
                     curSysname = thisVal[0]
             elif 'Datetime' in thisKey:
                 logEntries[thisKey] = thisVal

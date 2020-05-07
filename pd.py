@@ -12,6 +12,7 @@ import time
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
+from collections import deque
 
 # only available in python3:
 from statistics import mean
@@ -93,9 +94,11 @@ def parseEntry(log_entry):
     global starters     # the list of day names, Mon-Fri
     global curSysname   # the name of the system we're currently working on
 
+    log_entry.reverse()
+
     # parse each line:
     while len(log_entry) > 0:
-        inpline = log_entry.pop(0)[:-1]
+        inpline = log_entry.pop().strip()
         if len(inpline) == 0:
             continue # skip blank lines
 
@@ -115,7 +118,7 @@ def parseEntry(log_entry):
             entry.append(['Sysname', parts[0]]) # system name
 
             # snag the next line, it's got uptime, user count, load average
-            uptime = log_entry.pop(0)[:-1]
+            uptime = log_entry.pop()
             parts = uptime.split(',') # split on comma
             """
               parts[0] = 00:00:00 up 00 days,
@@ -163,7 +166,7 @@ def parseEntry(log_entry):
             memhdr.extend(inpline.split())
 
             # now get the numbers:
-            inpline = log_entry.pop(0)[:-1]
+            inpline = log_entry.pop()
             memparts = inpline.split()
             newmem = ['Mem:']
             for n in memparts[1:]:
@@ -174,7 +177,7 @@ def parseEntry(log_entry):
             entry.append(newmem)
 
             # get the swap numbers:
-            inpline = log_entry.pop(0)[:-1]
+            inpline = log_entry.pop()
             swapparts = inpline.split()
             newswap = ['Swap:']
             for n in swapparts[1:]:
@@ -189,8 +192,8 @@ def parseEntry(log_entry):
         # get disk usages:
         if 'Use%' in inpline:
             entry.append(['Diskhdr:', 'Size', 'Used', 'Avail', 'Use%'])
-            while len(inpline) > 1 and log_entry:
-                inpline = log_entry.pop(0)[:-1]
+            while len(inpline) > 0 and log_entry:
+                inpline = log_entry.pop().strip()
                 if len(inpline) > 0 and '----' not in inpline:
                     parts = inpline.split()
                     entry.append([parts[5], \
@@ -198,7 +201,6 @@ def parseEntry(log_entry):
                             to_bytes(parts[2]), \
                             to_bytes(parts[3]), \
                             to_bytes(parts[4])])
-
             continue
 
         # check ping test:
@@ -214,12 +216,12 @@ def parseEntry(log_entry):
                 entry.append(['services', 'OK'])
             else:
                 entry.append(['services', 'some services are DOWN:'])
-                inpline = log_entry.pop(0)[:-1]
+                inpline = log_entry.pop()
                 downlist = []   # list of downed services
                 while len(inpline) > 1:
                     parts = inpline.split()
                     downlist.append(parts[0])
-                    inpline = log_entry.pop(0)[:-1]
+                    inpline = log_entry.pop()
 
                 entry.append(['DOWN', downlist])
             continue
@@ -267,12 +269,7 @@ def process(logfile):
         logEntries = {}  # dictionary with log parameter as key, value as value
 
         # read in a full log entry:
-#        print('inp_index:', inp_index,'inp_max:', inp_max)
-        try:
-            inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
-        except TypeError as err:
-            print('break;')
-            break
+        inp_index, inp_entry = getEntry(inp_file, inp_index, inp_max)
 
         # parse the entry into a list of key:value pairs
         out_entry = parseEntry(inp_entry)

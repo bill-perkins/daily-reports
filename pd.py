@@ -20,18 +20,17 @@ from datetime import timedelta
 #import pprint
 #pp = pprint.PrettyPrinter(indent=2, width=160)
 
+## imports result in .pyc files:
 from utils import *
-
-allSystems = {}  # Global dictionary as sysname: datedEntries
-curSysname = ''  # Global current system name from logfile
 
 # if a line starts with a day of the week, we want to add the
 # hostname to the line.
 starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
 
-oneday = timedelta(days = 1)
-
-iam = sys.argv[0]
+allSystems = {}              # Global dictionary as sysname: datedEntries
+curSysname = ''              # Global current system name from logfile
+oneday = timedelta(days = 1) # Global timedelta of one day
+iam = sys.argv[0]            # Global program name
 
 # ----------------------------------------------------------------------------
 # getContent(filename)
@@ -51,7 +50,7 @@ def getContent(filename):
             logcontent = inpfile.readlines()
 
     except IOError as err:
-        print("getContent(): Couldn't open file " + filename + ": " + str(err))
+        print iam + ': getContent():', str(err)
         sys.exit(0)
 
     return logcontent

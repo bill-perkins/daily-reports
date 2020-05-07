@@ -292,14 +292,14 @@ def analyze(systems):
     global oneday
 
     # invariants dictionary
-    inv_d = {'/':        '', \
-            '/opt/sas':  '', \
-            '/sasdata':  '', \
-            '/sastmp':   '', \
-            'Mem:':      '', \
-            'Swap:':     '', \
-            'ping test': '', \
-            'services':  '', \
+    inv_d = {'/':        0.0, \
+            '/opt/sas':  0.0, \
+            '/sasdata':  0.0, \
+            '/sastmp':   0.0, \
+            'Mem:':      0.0, \
+            'Swap:':     0.0, \
+            'ping test': '',  \
+            'services':  '',  \
             'Uptime:':   '' }
 
     # --- now we want to analyze some of the data:
@@ -361,29 +361,40 @@ def analyze(systems):
                     inv_d['ping test'] = 'OK'
                     print(thisdate, 'first appearance of ping test')
 
-                if len(value) > 0 and value != val[0]:
-                    if key == 'services':
-                        downlist = cur_entry['DOWN']
-                        dLines = downlist[0]
-                        if len(dLines) == 1:
-                            print(thisdate, '1 service was down:')
-                            print('          ', dLines[0])
-                        else:
-                            print(thisdate, len(dLines), 'services were down:')
-                            for dLine in dLines:
-                                print('          ', dLine)
-                        # final print to separate downed services:
-                        print()
+                if key == 'services' and val[0] != 'OK':
+                    print(thisdate, "value: '" + value + "'")
+                    downlist = cur_entry['DOWN']
+                    dLines = downlist[0]
+                    if len(dLines) == 1:
+                        print(thisdate, '1 service was down:')
+                        print('          ', dLines[0])
                     else:
-                        print(thisdate, key + ": expected: '" + value + \
-                                "', found: '" + val[0] + "'")
+                        print(thisdate, len(dLines), 'services were down:')
+                        for dLine in dLines:
+                            print('          ', dLine)
+                    # final print to separate downed services:
+                    print()
+                else:
+                    if value == '' or value == 0.0:
+                        pass
+                    elif value != val[0]:
+                        print(thisdate, key + \
+                                ": expected: '" + str(value) + \
+                                "', found: '" + str(val[0]) + "'")
+                    value = val[0]
 
                 if key != 'services' \
                         and key != 'ping test' \
                         and key != 'Uptime:':
+
                     inv_d[key] = val[0]
 
         print(datestamp, 'Final entry')
+        print()
+
+        for key in list(inv_d)[0:4]:
+            analyze_disk(sysname, key)
+            print()
 
         # final print to separate system reports:
         print()
@@ -391,87 +402,86 @@ def analyze(systems):
 # ----------------------------------------------------------------------------
 # analyze_disk()
 # ----------------------------------------------------------------------------
-def analyze_disk(systems, which_disk):
+def analyze_disk(sysname, which_disk):
     """Analyze the disk entries in systems{}
     """
-    for sysname, datedEntries in list(systems.items()):
-        print('Analyzing',  which_disk, 'file system of', sysname + ':')
-        print()
-
-        total = list()
-        used = list()
-        avail = list()
-        usep = list()
-
-        # grab logs in date order:
-        for datestamp in sorted(datedEntries):
-            if datestamp == '':
-                continue    # somehow, we get a blank datestamp. Skip it.
-
-            # cur_entry is the dictionary for this datestamp
-            cur_entry = datedEntries[datestamp]
-
-            # get a date object for this datestamp:
-            thisdate = date(int(datestamp[0:4]), \
-                    int(datestamp[5:7]), \
-                    int(datestamp[8:10]))
-
-            try:
-                values = cur_entry[which_disk]
-            except KeyError as err:
-                continue # key not there? Who cares? in this case, we should ...
-
-            t, u, a, p = values
-
-            total.append(t)
-            used.append(u)
-            avail.append(a)
-            usep.append(p)
-
-        used_avg  = mean(used)
-        avail_avg = mean(avail)
-        usep_avg  = mean(usep)
-
-        used_min = int(used_avg * 0.85)
-        used_max = int(used_avg * 1.15)
-
-        print('used avg :', humanize(used_avg))
-        print('avail avg:', humanize(avail_avg))
-        print('pct avg  :', str(round(usep_avg, 1)) + '%')
-        print()
-
-        # analyze used v used_avg:
-        # grab logs in date order:
-        was = 0
-        for datestamp in sorted(datedEntries):
-            if datestamp == '':
-                continue    # somehow, we get a blank datestamp. Skip it.
-
-            # cur_entry is the dictionary for this datestamp
-            cur_entry = datedEntries[datestamp]
-
-            # get a date object for this datestamp:
-            thisdate = date(int(datestamp[0:4]), \
-                    int(datestamp[5:7]), \
-                    int(datestamp[8:10]))
-
-            try:
-                values = cur_entry[which_disk]
-            except KeyError as err:
-                continue # key not there? Who cares? in this case, it should be...
-
-            t, u, a, p = values
-
-            if was == 0:
-                was = p
-            else:
-                diff = abs(was - p)
-                if diff > 0:
-                    if diff > was * 0.21:
-                        print(thisdate, which_disk, 'usage:', str(int(p)) + '%', 'was:', str(int(was)) + '%')
-
-                    was = p
+    datedEntries = allSystems[sysname]
+    print('Analyzing',  which_disk, 'file system of', sysname + ':')
     print()
+
+    total = list()
+    used = list()
+    avail = list()
+    usep = list()
+
+    #---------------------------------------------------------------------
+    # we don't really need to do this part in date order...
+    for datestamp in datedEntries:
+        if datestamp == '':
+            continue    # somehow, we get a blank datestamp. Skip it.
+
+        # cur_entry is the dictionary for this datestamp
+        cur_entry = datedEntries[datestamp]
+
+        try:
+            values = cur_entry[which_disk]
+        except KeyError as err:
+            print('*** missing disk entry for', which_disk, 'on:', datestamp)
+            print()
+            continue # continue anyway
+
+        t, u, a, p = values
+
+        total.append(t)
+        used.append(u)
+        avail.append(a)
+        usep.append(p)
+
+    used_avg  = mean(used)
+    avail_avg = mean(avail)
+    usep_avg  = mean(usep)
+
+    used_min = int(used_avg * 0.85)
+    used_max = int(used_avg * 1.15)
+
+    print('used avg :', humanize(used_avg))
+    print('avail avg:', humanize(avail_avg))
+    print('pct avg  :', str(round(usep_avg, 1)) + '%')
+    print()
+
+    #---------------------------------------------------------------------
+    # analyze used v used_avg:
+    # grab logs in date order:
+    was = 0
+    for datestamp in sorted(datedEntries):
+        if datestamp == '':
+            continue    # somehow, we get a blank datestamp. Skip it.
+
+        # cur_entry is the dictionary for this datestamp
+        cur_entry = datedEntries[datestamp]
+
+        # get a date object for this datestamp:
+        thisdate = date(int(datestamp[0:4]), \
+                int(datestamp[5:7]), \
+                int(datestamp[8:10]))
+
+        try:
+            values = cur_entry[which_disk]
+        except KeyError as err:
+            continue # we already know it's missing, just carry on...
+
+        t, u, a, p = values
+
+        if was == 0:
+            was = p
+        else:
+            diff = abs(was - p)
+            if diff > 0:
+                if diff > was * 0.21:
+                    print(thisdate, which_disk, 'usage:', str(int(p)) + '%', 'was:', str(int(was)) + '%')
+
+                was = p
+print()
 
 # ----------------------------------------------------------------------------
 # main() part of the program
@@ -487,11 +497,22 @@ if __name__ == '__main__':
 
     print()
 
-    # analyze(allSystems)
-    analyze_disk(allSystems, '/')
-    analyze_disk(allSystems, '/opt/sas')
-    analyze_disk(allSystems, '/sasdata')
-    analyze_disk(allSystems, '/sastmp')
+    # display list of systems we found:
+    syslist = list(allSystems)
+    print('systems:')
+    for line in syslist:
+        print("    " + line)
+
+    print()
+
+    analyze(allSystems)
+
+#    for sysname in syslist:
+#        analyze_disk(sysname, '/')
+#        analyze_disk(sysname, '/opt/sas')
+#        analyze_disk(sysname, '/sasdata')
+#        analyze_disk(sysname, '/sastmp')
+    print()
 
 ##------------------------------------------------------------------------------
 ## pretty-print the resulting dictionary:

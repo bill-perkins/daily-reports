@@ -5,3 +5,4 @@ out*
 trythis
 tests
 single-dictionary
+*.pyc

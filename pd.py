@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # pd.py- process daily.log
 # simple script to take daily.log and convert to a dictionary,
@@ -13,8 +13,8 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
-# why isn't this available?
-#from statistics import mean
+# only available in python3:
+from statistics import mean
 
 ## for debugging:
 #import pprint
@@ -50,7 +50,7 @@ def getContent(filename):
             logcontent = inpfile.readlines()
 
     except IOError as err:
-        print iam + ': getContent():', str(err)
+        print(iam + ': getContent():', str(err))
         sys.exit(0)
 
     return logcontent
@@ -152,7 +152,6 @@ def parseEntry(log_entry):
 
             # get the load averages:
             # snag the last 3 fields from parts, fix up the 1st field
-
             load_list = ['Load:']
             load_list.extend([parts[-3].split()[2], parts[-2], parts[-1]])
 
@@ -169,17 +168,24 @@ def parseEntry(log_entry):
             # now get the numbers:
             inpline = log_entry.pop(0)[:-1]
             memparts = inpline.split()
+            newmem = ['Mem:']
+            for n in memparts[1:]:
+                newmem.append(ms2bytes(n))
 
             # add the header and the numbers to entry:
             entry.append(memhdr)
-            entry.append(memparts)
+            entry.append(newmem)
 
             # get the swap numbers:
             inpline = log_entry.pop(0)[:-1]
             swapparts = inpline.split()
+            newswap = ['Swap:']
+            for n in swapparts[1:]:
+                newswap.append(ms2bytes(n))
+
             # just add the header directly:
             entry.append(['Swaphdr:', 'total', 'used', 'free'])
-            entry.append(swapparts)
+            entry.append(newswap)
 
             continue
 
@@ -189,8 +195,12 @@ def parseEntry(log_entry):
             while len(inpline) > 1 and log_entry:
                 inpline = log_entry.pop(0)[:-1]
                 if len(inpline) > 0 and "----" not in inpline:
-                    tmp = inpline.split()
-                    entry.append([tmp[5], tmp[1], tmp[2], tmp[3], tmp[4]])
+                    parts = inpline.split()
+                    entry.append([parts[5], \
+                            to_bytes(parts[1]), \
+                            to_bytes(parts[2]), \
+                            to_bytes(parts[3]), \
+                            to_bytes(parts[4])])
 
             continue
 
@@ -227,7 +237,7 @@ def process(logfile):
     dictionary.
     """
 
-    print 'processing:', logfile
+    print('processing:', logfile)
 
     inp_file = getContent(logfile)      # get entire file into inp_file
     inp_max = len(inp_file)             # lines in file
@@ -249,9 +259,9 @@ def process(logfile):
 
     # set curSysname so we have it when we start parsing stuff
     if cur_syskey == '':
-        print "couldn't find system hostname in", logfile
-        print "skipping."
-        print
+        print("couldn't find system hostname in", logfile)
+        print("skipping.")
+        print()
         return
     curSysname = cur_syskey
 
@@ -314,10 +324,10 @@ def analyze(systems):
             'Uptime:':   '' }
 
     # --- now we want to analyze some of the data:
-    for sysname, datedEntries in systems.items():
+    for sysname, datedEntries in list(systems.items()):
         nexttime = date(2020,1,3)
-        print 'Analyzing system', sysname + ':'
-        print
+        print('Analyzing system', sysname + ':')
+        print()
 
         # grab logs in date order:
         for datestamp in sorted(datedEntries):
@@ -335,10 +345,10 @@ def analyze(systems):
             # complain if we see something unexpected:
             if thisdate != nexttime:
                 if str(nexttime) != '2020-01-03':
-                    print thisdate, "expected datestamp:", nexttime
+                    print(thisdate, "expected datestamp:", nexttime)
                 else:
                     nexttime = thisdate
-                    print thisdate, 'Logging starts'
+                    print(thisdate, 'Logging starts')
 
             # create a date object for the next day:
             nexttime = thisdate + oneday
@@ -348,7 +358,7 @@ def analyze(systems):
                 When something comes up different, complain about it,
                 then change the invariants list to the new value.
             """
-            for key, value in inv_d.items():
+            for key, value in list(inv_d.items()):
                 try:
                     val = cur_entry[key]
                 except KeyError as err:
@@ -361,43 +371,43 @@ def analyze(systems):
                         dTime = timedelta(hours = int(hm[0]), minutes = int(hm[1]))
                         cTime = cur_entry['Datetime'][0]
                         rebooted = cTime - dTime
-                        print rebooted.date(), "Reboot @", rebooted.time()
+                        print(rebooted.date(), "Reboot @", rebooted.time())
                     continue
 
                 if key == 'services' and inv_d['services'] == '':
                     inv_d['services'] = 'OK'
-                    print thisdate, 'first appearance of services check'
+                    print(thisdate, 'first appearance of services check')
 
                 if key == 'ping test' and inv_d['ping test'] == '':
                     inv_d['ping test'] = 'OK'
-                    print thisdate, 'first appearance of ping test'
+                    print(thisdate, 'first appearance of ping test')
 
                 if len(value) > 0 and value != val[0]:
                     if key == 'services':
                         downlist = cur_entry['DOWN']
                         dLines = downlist[0]
                         if len(dLines) == 1:
-                            print thisdate, '1 service was down:'
-                            print '          ', dLines[0]
+                            print(thisdate, '1 service was down:')
+                            print('          ', dLines[0])
                         else:
-                            print thisdate, len(dLines), 'services were down:'
+                            print(thisdate, len(dLines), 'services were down:')
                             for dLine in dLines:
-                                print '          ', dLine
+                                print('          ', dLine)
                         # final print to separate downed services:
-                        print
+                        print()
                     else:
-                        print thisdate, key + ": expected: '" + value + \
-                                "', found: '" + val[0] + "'"
+                        print(thisdate, key + ": expected: '" + value + \
+                                "', found: '" + val[0] + "'")
 
                 if key != 'services' \
                         and key != 'ping test' \
                         and key != 'Uptime:':
                     inv_d[key] = val[0]
 
-        print datestamp, "Final entry"
+        print(datestamp, "Final entry")
 
         # final print to separate system reports:
-        print
+        print()
 
 # ----------------------------------------------------------------------------
 # analyze_disk()
@@ -405,9 +415,9 @@ def analyze(systems):
 def analyze_disk(systems, which_disk):
     """Analyze the disk entries in systems{}
     """
-    for sysname, datedEntries in systems.items():
-        print 'Analyzing',  which_disk, 'file system of', sysname + ':'
-        print
+    for sysname, datedEntries in list(systems.items()):
+        print('Analyzing',  which_disk, 'file system of', sysname + ':')
+        print()
 
         total = list()
         used = list()
@@ -434,22 +444,22 @@ def analyze_disk(systems, which_disk):
 
             t, u, a, p = values
 
-            total.append(to_bytes(t))
-            used.append(to_bytes(u))
-            avail.append(to_bytes(a))
-            usep.append(to_bytes(p))
+            total.append(t)
+            used.append(u)
+            avail.append(a)
+            usep.append(p)
 
-        used_avg  = sum(used)  / len(used)
-        avail_avg = sum(avail) / len(avail)
-        usep_avg  = sum(usep)  / len(usep)
+        used_avg  = mean(used)
+        avail_avg = mean(avail)
+        usep_avg  = mean(usep)
 
         used_min = int(used_avg * 0.85)
         used_max = int(used_avg * 1.15)
 
-        print 'used avg :', humanize(used_avg)
-        print 'avail avg:', humanize(avail_avg)
-        print 'pct avg  :', str(round(usep_avg, 1)) + '%'
-        print
+        print('used avg :', humanize(used_avg))
+        print('avail avg:', humanize(avail_avg))
+        print('pct avg  :', str(round(usep_avg, 1)) + '%')
+        print()
 
         # analyze used v used_avg:
         # grab logs in date order:
@@ -474,15 +484,15 @@ def analyze_disk(systems, which_disk):
             t, u, a, p = values
 
             if was == 0:
-                was = to_bytes(p)
+                was = p
             else:
-                diff = abs(was - to_bytes(p))
+                diff = abs(was - p)
                 if diff > 0:
                     if diff > was * 0.21:
-                        print thisdate, which_disk, "usage:", p, "was:", str(int(was)) + '%'
+                        print(thisdate, which_disk, "usage:", str(int(p)) + '%', "was:", str(int(was)) + '%')
 
-                    was = to_bytes(p)
-    print
+                    was = p
+    print()
 
 # ----------------------------------------------------------------------------
 # main() part of the program
@@ -496,7 +506,7 @@ if __name__ == '__main__':
     for inpfile in arglist:
         process(inpfile) # process() updates global allSystems{}
 
-    print
+    print()
 
     # analyze(allSystems)
     analyze_disk(allSystems, '/')

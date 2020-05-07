@@ -27,6 +27,9 @@ def getContent(filename):
 # humanize(number)- change number to human-readable format
 # -----------------------------------------------------------------------------
 def humanize(f):
+    if not isinstance(f, int) and not isinstance(f, float):
+        return f
+
     if f < 1024:
         return str(f) + "B"
 

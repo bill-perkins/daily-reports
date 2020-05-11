@@ -1,0 +1,9 @@
+#
+
+Enhancements:
+disk watch: look for disk usage > x%
+mem  watch: look for mem  usage > x%
+swap watch: look for any change at all
+end of report, put initial and final disk/memory/swap usage
+
+# EOF:

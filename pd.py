@@ -218,7 +218,7 @@ def process(logfile):
 
     inp_file = getContent(logfile)      # get entire file into inp_file
     inp_max = len(inp_file)             # lines in file
-    next_ix = 0                         # current index into inp_file
+    ix = 0                         # current index into inp_file
     cur_syskey = ''                     # current system name
 
     inp_entry = []                      # create local entry list
@@ -244,12 +244,12 @@ def process(logfile):
 
     curSysname = cur_syskey
 
-    while next_ix < inp_max:
+    while ix < inp_max:
         # declare logEntries here so we always have a fresh one:
         logEntries = {}  # dictionary with log parameter as key, value as value
 
         # read in a full log entry:
-        next_ix, inp_entry = getEntry(inp_file, next_ix, inp_max)
+        ix, inp_entry = getEntry(inp_file, ix, inp_max)
 
         # parse inp_entry into a list of key:value pairs in out_entry
         out_entry = parseEntry(inp_entry)
@@ -261,9 +261,9 @@ def process(logfile):
             thisKey = x[0]
             thisVal = x[1:]
 
-            if 'Datestamp:' in thisKey:
+            if 'Datestamp' in thisKey:
                 dateKey = thisVal[0]
-            elif 'Systime:' in thisKey:
+            elif 'Systime' in thisKey:
                 curSystime = thisKey
             elif 'Sysname' in thisKey:
                 if thisVal[0] != curSysname:
@@ -282,11 +282,11 @@ def process(logfile):
     allSystems[curSysname] = datedEntries
 
 # ----------------------------------------------------------------------------
-# analyze():
+# analyze(systems):
 # ----------------------------------------------------------------------------
 def analyze(systems):
-    """Look for changing immutable values.
-       Immutable values are set by the first log entry processed.
+    """ Look for changing immutable values.
+        Immutable values are set by the first log entry processed.
     """
 
     global oneday
@@ -309,17 +309,17 @@ def analyze(systems):
         print()
 
         # grab logs in date order:
-        for datestamp in sorted(datedEntries):
-            if datestamp == '':
-                continue    # somehow, we get a blank datestamp. Skip it.
+        entry_dates = sorted(datedEntries)
+        entry_dates.pop(0) # get rid of that annoying blank entry at the start
 
-            # cur_entry is the dictionary for this datestamp
-            cur_entry = datedEntries[datestamp]
+        for datestamp in entry_dates:
+            # entry is the log dictionary for this datestamp:
+            entry = datedEntries[datestamp]
 
             # get a date object for this datestamp:
             thisdate = date(int(datestamp[0:4]), \
                     int(datestamp[5:7]), \
-                    int(datestamp[8:10]))
+                    int(datestamp[8:10]))   # year, month, day
 
             # complain if we see something unexpected:
             if thisdate != nexttime:
@@ -339,7 +339,7 @@ def analyze(systems):
             """
             for key, value in list(inv_d.items()):
                 try:
-                    val = cur_entry[key]
+                    val = entry[key]
                 except KeyError as err:
                     continue # key not there? Who cares?
 
@@ -348,7 +348,7 @@ def analyze(systems):
                     if 'days' not in val[0]:
                         hm = val[0].split(':')
                         dTime = timedelta(hours = int(hm[0]), minutes = int(hm[1]))
-                        cTime = cur_entry['Datetime'][0]
+                        cTime = entry['Datetime'][0]
                         rebooted = cTime - dTime
                         print(rebooted.date(), 'Reboot @', rebooted.time())
                     continue
@@ -356,14 +356,15 @@ def analyze(systems):
                 if key == 'services' and inv_d['services'] == '':
                     inv_d['services'] = 'OK'
                     print(thisdate, 'first appearance of services check')
+                    continue
 
                 if key == 'ping test' and inv_d['ping test'] == '':
                     inv_d['ping test'] = 'OK'
                     print(thisdate, 'first appearance of ping test')
+                    continue
 
                 if key == 'services' and val[0] != 'OK':
-                    print(thisdate, "value: '" + value + "'")
-                    downlist = cur_entry['DOWN']
+                    downlist = entry['DOWN']
                     dLines = downlist[0]
                     if len(dLines) == 1:
                         print(thisdate, '1 service was down:')
@@ -372,8 +373,10 @@ def analyze(systems):
                         print(thisdate, len(dLines), 'services were down:')
                         for dLine in dLines:
                             print('          ', dLine)
+
                     # final print to separate downed services:
                     print()
+                    continue
                 else:
                     if value == '' or value == 0.0:
                         pass
@@ -382,12 +385,14 @@ def analyze(systems):
                                 ": expected: '" + str(value) + \
                                 "', found: '" + str(val[0]) + "'")
                     value = val[0]
+                    continue
 
                 if key != 'services' \
                         and key != 'ping test' \
                         and key != 'Uptime:':
 
                     inv_d[key] = val[0]
+                    continue
 
         print(datestamp, 'Final entry')
         print()
@@ -400,37 +405,30 @@ def analyze(systems):
         print()
 
 # ----------------------------------------------------------------------------
-# analyze_disk()
+# get_avg()
 # ----------------------------------------------------------------------------
-def analyze_disk(sysname, which_disk):
-    """Analyze the disk entries in systems{}
-    """
-    datedEntries = allSystems[sysname]
-    print('Analyzing',  which_disk, 'file system of', sysname + ':')
-    print()
+def get_avg(sysname, which_disk):
+    print ('Averages:')
+    total = []
+    used  = []
+    avail = []
+    usep  = []
 
-    total = list()
-    used = list()
-    avail = list()
-    usep = list()
+    datedEntries = allSystems[sysname]
+    entry_dates = sorted(datedEntries)
+    entry_dates.pop(0) # get rid of that annoying blank entry at the start
 
     #---------------------------------------------------------------------
-    # we don't really need to do this part in date order...
-    for datestamp in datedEntries:
-        if datestamp == '':
-            continue    # somehow, we get a blank datestamp. Skip it.
-
-        # cur_entry is the dictionary for this datestamp
-        cur_entry = datedEntries[datestamp]
+    for datestamp in entry_dates:
+        # entry is the dictionary for this datestamp
+        entry = datedEntries[datestamp]
 
         try:
-            values = cur_entry[which_disk]
+            t, u, a, p = entry[which_disk]
         except KeyError as err:
             print('*** missing disk entry for', which_disk, 'on:', datestamp)
             print()
             continue # continue anyway
-
-        t, u, a, p = values
 
         total.append(t)
         used.append(u)
@@ -441,47 +439,78 @@ def analyze_disk(sysname, which_disk):
     avail_avg = mean(avail)
     usep_avg  = mean(usep)
 
-    used_min = int(used_avg * 0.85)
-    used_max = int(used_avg * 1.15)
-
-    print('used avg :', humanize(used_avg))
-    print('avail avg:', humanize(avail_avg))
-    print('pct avg  :', str(round(usep_avg, 1)) + '%')
+    print('used avg  :', humanize(used_avg))
+    print('avail avg :', humanize(avail_avg))
+    print('pct avg   :', str(round(usep_avg, 1)) + '%')
     print()
+
+# ----------------------------------------------------------------------------
+# get_chg(sysname which_disk, variance)
+# ----------------------------------------------------------------------------
+def get_chg(sysname, which_disk, variance = 0.21):
+    print('Variances of >', str(variance * 100) + '%')
+    datedEntries = allSystems[sysname]
+    entry_dates = sorted(datedEntries)
+    entry_dates.pop(0) # get rid of that annoying blank entry at the start
+    tripped = False
 
     #---------------------------------------------------------------------
     # analyze used v used_avg:
     # grab logs in date order:
     was = 0
-    for datestamp in sorted(datedEntries):
-        if datestamp == '':
-            continue    # somehow, we get a blank datestamp. Skip it.
-
-        # cur_entry is the dictionary for this datestamp
-        cur_entry = datedEntries[datestamp]
-
-        # get a date object for this datestamp:
-        thisdate = date(int(datestamp[0:4]), \
-                int(datestamp[5:7]), \
-                int(datestamp[8:10]))
+    for datestamp in entry_dates:
+        # entry is the dictionary for this datestamp
+        entry = datedEntries[datestamp]
 
         try:
-            values = cur_entry[which_disk]
+            t, u, a, p = entry[which_disk]
         except KeyError as err:
-            continue # we already know it's missing, just carry on...
-
-        t, u, a, p = values
+            continue # we already know it's missing, go for the next
 
         if was == 0:
             was = p
         else:
             diff = abs(was - p)
             if diff > 0:
-                if diff > was * 0.21:
-                    print(thisdate, which_disk, 'usage:', str(int(p)) + '%', 'was:', str(int(was)) + '%')
+                if diff > was * variance:
+                    print(datestamp, which_disk, 'usage:', str(int(p)) + '%', 'was:', str(int(was)) + '%')
+                    tripped = True
 
                 was = p
-print()
+
+    if tripped == False:
+        print('(none)')
+
+    print()
+# ----------------------------------------------------------------------------
+# analyze_disk()
+# ----------------------------------------------------------------------------
+def analyze_disk(sysname, which_disk, variance = 0.21):
+    """Analyze the disk entries in systems{}
+    """
+
+    print('Analyzing',  which_disk, 'file system of', sysname + ':')
+    print()
+
+    get_avg(sysname, which_disk)
+    get_chg(sysname, which_disk, 0.2)
+
+    datedEntries = allSystems[sysname]
+    entry_dates = sorted(allSystems[sysname])
+
+    #---------------------------------------------------------------------
+    # spit out where we started, where we ended:
+    print('Start end end values:')
+
+    logStart = entry_dates[1]
+    entry = datedEntries[logStart]
+    t, u, a, p = entry[which_disk]
+    print(logStart, which_disk, "started at:", humanize(u), 'used,', humanize(a), 'available,', str(p) + '% used')
+
+    logEnds  = entry_dates[-1]
+    entry = datedEntries[logEnds]
+    t, u, a, p = entry[which_disk]
+    print(logEnds,  which_disk, "ended at:  ", humanize(u), 'used,', humanize(a), 'available,', str(p) + '% used')
 
 # ----------------------------------------------------------------------------
 # main() part of the program

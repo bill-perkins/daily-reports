@@ -2,7 +2,7 @@
 #
 # pd.py- process daily.log
 # simple script to take daily.log and convert to a dictionary,
-# do some analysis of the data
+# and do some analysis of the data
 #
 
 # some standard python stuff
@@ -13,17 +13,9 @@ import os
 #import pprint
 #pp = pprint.PrettyPrinter(indent=2, width=160)
 
-## if we do this, we have to qualify the functions
-## in utils: i.e. utils.humanize(n)
-#import utils
-#
-## so instead, we do this:
-## (imports result in .pyc files)
-#from utils import *
-
-allSystems = {}
-curSysname = ''              # Global current system name from logfile
-iam = sys.argv[0]            # Global program name
+allSystems = {}             # all the system data
+curSysname = ''             # Global current system name from logfile
+iam = sys.argv[0]           # Global program name
 
 from process import *
 from analyze import *

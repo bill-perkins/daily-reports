@@ -121,7 +121,6 @@ def analyze(systems):
         print()
 
         for key in list(invariants)[0:4]:
-#            analyze_disk(allSystems, sysname, key, 0.19)
             analyze_disk(systems, sysname, key, 0.19)
             print()
 

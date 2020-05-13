@@ -7,14 +7,14 @@ from utils import *
 # ----------------------------------------------------------------------------
 # get_avg()
 # ----------------------------------------------------------------------------
-def get_avg(allSystems, sysname, which_disk):
+def get_avg(systems, sysname, which_disk):
     print ('Averages:')
     total = []
     used  = []
     avail = []
     usep  = []
 
-    datedEntries = allSystems[sysname]
+    datedEntries = systems[sysname]
     entry_dates = sorted(datedEntries)
     entry_dates.pop(0) # get rid of that annoying blank entry at the start
 
@@ -47,9 +47,9 @@ def get_avg(allSystems, sysname, which_disk):
 # ----------------------------------------------------------------------------
 # get_chg(sysname which_disk, variance)
 # ----------------------------------------------------------------------------
-def get_chg(allSystems, sysname, which_disk, variance = 0.21):
+def get_chg(systems, sysname, which_disk, variance = 0.21):
     print('Variances of >', str(variance * 100) + '%')
-    datedEntries = allSystems[sysname]
+    datedEntries = systems[sysname]
     entry_dates = sorted(datedEntries)
     entry_dates.pop(0) # get rid of that annoying blank entry at the start
     tripped = False
@@ -86,18 +86,18 @@ def get_chg(allSystems, sysname, which_disk, variance = 0.21):
 # ----------------------------------------------------------------------------
 # analyze_disk()
 # ----------------------------------------------------------------------------
-def analyze_disk(allSystems, sysname, which_disk, variance = 0.21):
+def analyze_disk(systems, sysname, which_disk, variance = 0.21):
     """Analyze the disk entries in systems{}
     """
 
     print('Analyzing',  which_disk, 'file system of', sysname + ':')
     print()
 
-    get_avg(allSystems, sysname, which_disk)
-    get_chg(allSystems, sysname, which_disk, variance)
+    get_avg(systems, sysname, which_disk)
+    get_chg(systems, sysname, which_disk, variance)
 
-    datedEntries = allSystems[sysname]
-    entry_dates = sorted(allSystems[sysname])
+    datedEntries = systems[sysname]
+    entry_dates = sorted(systems[sysname])
 
     #---------------------------------------------------------------------
     # spit out where we started, where we ended:

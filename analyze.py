@@ -2,7 +2,6 @@
 
 from datetime import date
 
-from utils import *
 from analyze_disk import *
 
 # ----------------------------------------------------------------------------
@@ -20,15 +19,16 @@ def analyze(systems):
             '/opt/sas':  0.0, \
             '/sasdata':  0.0, \
             '/sastmp':   0.0, \
-            'Mem:':      0.0, \
+            'Mem':       0.0, \
             'Swap:':     0.0, \
             'ping test': '',  \
             'services':  '',  \
             'Uptime':   '' }
 
-    # --- now we want to analyze some of the data:
+    # --- analyze some data:
     for sysname, datedEntries in list(systems.items()):
         nexttime = date(2020,1,3)
+
         print('Analyzing system', sysname + ':')
         print()
 
@@ -104,6 +104,7 @@ def analyze(systems):
                     # final print to separate downed services:
                     print()
                     continue
+
                 else:   # we're looking at a different invariant key
                     if value == '' or value == 0.0:
                         pass
@@ -111,10 +112,6 @@ def analyze(systems):
                         print(thisdate, key + \
                                 ": expected: '" + str(value) + \
                                 "', found: '" + str(val[0]) + "'")
-                    value = val[0]
-                    continue
-
-                if key not in ('services', 'ping test', 'Uptime'):
                     invariants[key] = val[0]
                     continue
 
@@ -122,7 +119,7 @@ def analyze(systems):
         print()
 
         for key in list(invariants)[0:4]:
-            analyze_disk(sysname, key)
+            analyze_disk(sysname, key, 0.19)
             print()
 
         # final print to separate system reports:

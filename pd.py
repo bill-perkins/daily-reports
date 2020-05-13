@@ -21,6 +21,7 @@ import os
 ## (imports result in .pyc files)
 #from utils import *
 
+allSystems = {}
 curSysname = ''              # Global current system name from logfile
 iam = sys.argv[0]            # Global program name
 
@@ -38,7 +39,7 @@ if __name__ == '__main__':
         arglist = sys.argv[1:]
 
     for inpfile in arglist:
-        process(inpfile) # process() updates global allSystems{}
+        process(inpfile, allSystems) # process() updates global allSystems{}
 
     print()
 

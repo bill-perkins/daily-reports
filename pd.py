@@ -13,7 +13,6 @@ import os
 #import pprint
 #pp = pprint.PrettyPrinter(indent=2, width=160)
 
-allSystems = {}             # all the system data
 curSysname = ''             # Global current system name from logfile
 iam = sys.argv[0]           # Global program name
 
@@ -24,6 +23,7 @@ from analyze import *
 # main() part of the program
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
+    allSystems = {}         # all the system data
 
     if len(sys.argv) == 1:
         arglist = ['daily.log']

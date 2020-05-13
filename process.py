@@ -5,12 +5,13 @@ from parseentry import *
 # ----------------------------------------------------------------------------
 # process()
 # ----------------------------------------------------------------------------
-def process(logfile):
+def process(logfile, allSystems):
     """ Take a given log file and adds the data to the
         global allSystems dictionary.
     """
 
-    global allSystems
+    global curSysname
+
     print('processing:', logfile)
 
     inp_file = getContent(logfile)      # get entire file into inp_file
@@ -22,8 +23,6 @@ def process(logfile):
     out_entry = []                      # create local entry list
 
     datedEntries = {}                   # dictionary as datestamp: logEntries
-    global allSystems                   # dictionary as sysname: datedEntries
-    global curSysname
 
     curSystime = ''                     # system time of this entry
 

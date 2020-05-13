@@ -1,11 +1,13 @@
-from utils import *
+# analyze_disk.py
+
 from statistics import mean
 
-#from get_avg import *
+from utils import *
+
 # ----------------------------------------------------------------------------
 # get_avg()
 # ----------------------------------------------------------------------------
-def get_avg(sysname, which_disk):
+def get_avg(allSystems, sysname, which_disk):
     print ('Averages:')
     total = []
     used  = []
@@ -42,12 +44,10 @@ def get_avg(sysname, which_disk):
     print('pct avg   :', str(round(usep_avg, 1)) + '%')
     print()
 
-
-#from get_chg import *
 # ----------------------------------------------------------------------------
 # get_chg(sysname which_disk, variance)
 # ----------------------------------------------------------------------------
-def get_chg(sysname, which_disk, variance = 0.21):
+def get_chg(allSystems, sysname, which_disk, variance = 0.21):
     print('Variances of >', str(variance * 100) + '%')
     datedEntries = allSystems[sysname]
     entry_dates = sorted(datedEntries)
@@ -86,15 +86,15 @@ def get_chg(sysname, which_disk, variance = 0.21):
 # ----------------------------------------------------------------------------
 # analyze_disk()
 # ----------------------------------------------------------------------------
-def analyze_disk(sysname, which_disk, variance = 0.21):
+def analyze_disk(allSystems, sysname, which_disk, variance = 0.21):
     """Analyze the disk entries in systems{}
     """
 
     print('Analyzing',  which_disk, 'file system of', sysname + ':')
     print()
 
-    get_avg(sysname, which_disk)
-    get_chg(sysname, which_disk, variance)
+    get_avg(allSystems, sysname, which_disk)
+    get_chg(allSystems, sysname, which_disk, variance)
 
     datedEntries = allSystems[sysname]
     entry_dates = sorted(allSystems[sysname])

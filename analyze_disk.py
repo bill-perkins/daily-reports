@@ -8,7 +8,7 @@ from utils import *
 # get_avg()
 # ----------------------------------------------------------------------------
 def get_avg(systems, sysname, which_disk):
-    print ('Averages:')
+    print ('    Averages:')
     total = []
     used  = []
     avail = []
@@ -39,16 +39,16 @@ def get_avg(systems, sysname, which_disk):
     avail_avg = mean(avail)
     usep_avg  = mean(usep)
 
-    print('used avg  :', humanize(used_avg))
-    print('avail avg :', humanize(avail_avg))
-    print('pct avg   :', str(round(usep_avg, 1)) + '%')
+    print('        used avg  :', humanize(used_avg))
+    print('        avail avg :', humanize(avail_avg))
+    print('        pct avg   :', str(round(usep_avg, 1)) + '%')
     print()
 
 # ----------------------------------------------------------------------------
 # get_chg(sysname which_disk, variance)
 # ----------------------------------------------------------------------------
 def get_chg(systems, sysname, which_disk, variance = 0.21):
-    print('Variances of >', str(variance * 100) + '%')
+    print('    Variances of >', str(variance * 100) + '%')
     datedEntries = systems[sysname]
     entry_dates = sorted(datedEntries)
     entry_dates.pop(0) # get rid of that annoying blank entry at the start
@@ -73,13 +73,15 @@ def get_chg(systems, sysname, which_disk, variance = 0.21):
             diff = abs(was - p)
             if diff > 0:
                 if diff > was * variance:
-                    print(datestamp, which_disk, 'usage:', str(int(p)) + '%', 'was:', str(int(was)) + '%')
+                    print('       ', datestamp, which_disk, \
+                            'usage:', str(int(p)) + '%', \
+                            'was:', str(int(was)) + '%')
                     tripped = True
 
                 was = p
 
     if tripped == False:
-        print('(none)')
+        print('        (none)')
 
     print()
 
@@ -101,16 +103,18 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
 
     #---------------------------------------------------------------------
     # spit out where we started, where we ended:
-    print('Start end end values:')
+    print('    Start and end values:')
 
     logStart = entry_dates[1]
     entry = datedEntries[logStart]
     t, u, a, p = entry[which_disk]
-    print(logStart, which_disk, "started at:", humanize(u), 'used,', humanize(a), 'available,', str(p) + '% used')
+    print('       ', logStart, which_disk, "started at:", humanize(u), \
+            'used,', humanize(a), 'available,', str(p) + '% used')
 
     logEnds  = entry_dates[-1]
     entry = datedEntries[logEnds]
     t, u, a, p = entry[which_disk]
-    print(logEnds,  which_disk, "ended at:  ", humanize(u), 'used,', humanize(a), 'available,', str(p) + '% used')
+    print('       ', logEnds,  which_disk, "ended at:  ", humanize(u), \
+            'used,', humanize(a), 'available,', str(p) + '% used')
 
 # EOF:

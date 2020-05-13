@@ -68,7 +68,7 @@ def get_memory(inpline, log_entry, entry):
     # now get the numbers:
     inpline = log_entry.pop()
     memparts = inpline.split()
-    newmem = ['Mem:']
+    newmem = ['Mem']
     for n in memparts[1:]:
         newmem.append(ms2bytes(n))
 
@@ -144,10 +144,14 @@ def parseEntry(log_entry):
             if inpline.split()[2] == 'OK':
                 entry.append(['services', 'OK'])
             else:
+                downlist = []   # list of downed services
                 entry.append(['services', 'some services were DOWN:'])
                 inpline = log_entry.pop()
-                downlist = []   # list of downed services
                 while len(inpline) > 1:
+                    if 'Consul' in inpline:
+                        inpline = log_entry.pop()
+                        continue
+
                     parts = inpline.split()
                     downlist.append(parts[0])
                     inpline = log_entry.pop()

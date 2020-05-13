@@ -129,7 +129,7 @@ def parseEntry(log_entry):
                             to_bytes(parts[1]), \
                             to_bytes(parts[2]), \
                             to_bytes(parts[3]), \
-                            to_bytes(parts[4])])
+                            to_bytes(parts[4])]) # disk name, size, used, free, use%
             continue
 
         # check ping test:

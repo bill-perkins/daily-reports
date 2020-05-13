@@ -5,6 +5,28 @@ from statistics import mean
 from utils import *
 
 # ----------------------------------------------------------------------------
+# chk_variances(variance)
+# ----------------------------------------------------------------------------
+def chk_variance(invariants, values, variance):
+#    print('disk    :', disk)
+#    print('variance:', variance)
+#    print('value   :', value[0])
+#    print('was     :', value[1])
+#    if value[0] != value[1]:
+#        print('changed: disk:', disk, 'was:', value[1], 'now:', value[0])
+#        print()
+    if invariants[0] != values[0]:
+        print('size change from:', humanize(invariants[0]), 'to:', humanzie(values[0]))
+
+    if invariants[1] != values[1]:
+        pass
+    if invariants[2] != values[2]:
+        pass
+    if invariants[3] != values[3]:
+        pass
+    pass
+
+# ----------------------------------------------------------------------------
 # get_avg()
 # ----------------------------------------------------------------------------
 def get_avg(systems, sysname, which_disk):
@@ -16,7 +38,8 @@ def get_avg(systems, sysname, which_disk):
 
     datedEntries = systems[sysname]
     entry_dates = sorted(datedEntries)
-    entry_dates.pop(0) # get rid of that annoying blank entry at the start
+    if len(entry_dates[0]) == 0:
+        entry_dates.pop(0) # get rid of that annoying blank entry at the start
 
     #---------------------------------------------------------------------
     for datestamp in entry_dates:
@@ -45,13 +68,15 @@ def get_avg(systems, sysname, which_disk):
     print()
 
 # ----------------------------------------------------------------------------
-# get_chg(sysname which_disk, variance)
+# get_chg(systems, sysname which_disk, variance)
 # ----------------------------------------------------------------------------
 def get_chg(systems, sysname, which_disk, variance = 0.21):
     print('    Variances of >', str(variance * 100) + '%')
+
     datedEntries = systems[sysname]
     entry_dates = sorted(datedEntries)
-    entry_dates.pop(0) # get rid of that annoying blank entry at the start
+    if len(entry_dates[0]) == 0:
+        entry_dates.pop(0) # get rid of that annoying blank entry at the start
     tripped = False
 
     #---------------------------------------------------------------------

@@ -1,6 +1,87 @@
-from get_avg import *
 from utils import *
-from get_chg import *
+from statistics import mean
+
+#from get_avg import *
+# ----------------------------------------------------------------------------
+# get_avg()
+# ----------------------------------------------------------------------------
+def get_avg(sysname, which_disk):
+    print ('Averages:')
+    total = []
+    used  = []
+    avail = []
+    usep  = []
+
+    datedEntries = allSystems[sysname]
+    entry_dates = sorted(datedEntries)
+    entry_dates.pop(0) # get rid of that annoying blank entry at the start
+
+    #---------------------------------------------------------------------
+    for datestamp in entry_dates:
+        # entry is the dictionary for this datestamp
+        entry = datedEntries[datestamp]
+
+        try:
+            t, u, a, p = entry[which_disk]
+        except KeyError as err:
+            print('*** missing disk entry for', which_disk, 'on:', datestamp)
+            print()
+            continue # continue anyway
+
+        total.append(t)
+        used.append(u)
+        avail.append(a)
+        usep.append(p)
+
+    used_avg  = mean(used)
+    avail_avg = mean(avail)
+    usep_avg  = mean(usep)
+
+    print('used avg  :', humanize(used_avg))
+    print('avail avg :', humanize(avail_avg))
+    print('pct avg   :', str(round(usep_avg, 1)) + '%')
+    print()
+
+
+#from get_chg import *
+# ----------------------------------------------------------------------------
+# get_chg(sysname which_disk, variance)
+# ----------------------------------------------------------------------------
+def get_chg(sysname, which_disk, variance = 0.21):
+    print('Variances of >', str(variance * 100) + '%')
+    datedEntries = allSystems[sysname]
+    entry_dates = sorted(datedEntries)
+    entry_dates.pop(0) # get rid of that annoying blank entry at the start
+    tripped = False
+
+    #---------------------------------------------------------------------
+    # analyze used v used_avg:
+    # grab logs in date order:
+    was = 0
+    for datestamp in entry_dates:
+        # entry is the dictionary for this datestamp
+        entry = datedEntries[datestamp]
+
+        try:
+            t, u, a, p = entry[which_disk]
+        except KeyError as err:
+            continue # we already know it's missing, go for the next
+
+        if was == 0:
+            was = p
+        else:
+            diff = abs(was - p)
+            if diff > 0:
+                if diff > was * variance:
+                    print(datestamp, which_disk, 'usage:', str(int(p)) + '%', 'was:', str(int(was)) + '%')
+                    tripped = True
+
+                was = p
+
+    if tripped == False:
+        print('(none)')
+
+    print()
 
 # ----------------------------------------------------------------------------
 # analyze_disk()

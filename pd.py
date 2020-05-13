@@ -39,7 +39,8 @@ if __name__ == '__main__':
         arglist = sys.argv[1:]
 
     for inpfile in arglist:
-        process(inpfile, allSystems) # process() updates global allSystems{}
+        sysname, entries = process(inpfile)
+        allSystems[sysname] = entries
 
     print()
 

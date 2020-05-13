@@ -1,3 +1,6 @@
+# process.py
+#
+import sys
 from utils import *
 from getentry import *
 from parseentry import *
@@ -5,9 +8,9 @@ from parseentry import *
 # ----------------------------------------------------------------------------
 # process()
 # ----------------------------------------------------------------------------
-def process(logfile, allSystems):
-    """ Take a given log file and adds the data to the
-        global allSystems dictionary.
+def process(logfile):
+    """ Take a given log file and
+        return the system name, and all the dated entries
     """
 
     global curSysname
@@ -63,9 +66,8 @@ def process(logfile, allSystems):
                 curSystime = thisKey
             elif 'Sysname' in thisKey:
                 if thisVal[0] != curSysname:
-                    allSystems[curSysname] = datedEntries
-                    datedEntries = {} # refresh
-                    curSysname = thisVal[0]
+                    print("Foreign system name in input file: '" + thisVal[0] + "'")
+                    sys.exit(1)
             elif 'Datetime' in thisKey:
                 logEntries[thisKey] = thisVal
             else:
@@ -74,7 +76,6 @@ def process(logfile, allSystems):
         # create datedEntries using the datestamp for its keys:
         datedEntries[dateKey] = logEntries
 
-    # create allSystems with the system name for its keys:
-    allSystems[curSysname] = datedEntries
+    return curSysname, datedEntries
 
 # EOF:

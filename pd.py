@@ -31,6 +31,7 @@ from analyze import *
 # main() part of the program
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
+
     if len(sys.argv) == 1:
         arglist = ['daily.log']
     else:
@@ -43,11 +44,12 @@ if __name__ == '__main__':
 
     # display list of systems we found:
     syslist = list(allSystems)
-    print('systems:')
+    print('Systems:')
     for line in syslist:
         print("    " + line)
 
     print()
+
     analyze(allSystems)
     print()
 

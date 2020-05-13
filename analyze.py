@@ -12,12 +12,13 @@ from utils import *
 def analyze(systems):
     """ Look for changing immutable values.
         Immutable values are set by the first log entry processed.
+        input: systems is a dictionary of sysname: datedEntries
     """
 
     global oneday
 
     # invariants dictionary
-    invariants = {'/':        0.0, \
+    invariants = {'/':   0.0, \
             '/opt/sas':  0.0, \
             '/sasdata':  0.0, \
             '/sastmp':   0.0, \
@@ -36,7 +37,8 @@ def analyze(systems):
 
         # grab logs in date order:
         entry_dates = sorted(datedEntries)
-        entry_dates.pop(0) # get rid of that annoying blank entry at the start
+        if len(entry_dates[0]) == 0:
+            entry_dates.pop(0) # get rid of that annoying blank entry at the start
 
         for datestamp in entry_dates:
             # entry is the log dictionary for this datestamp:

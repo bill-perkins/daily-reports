@@ -1,8 +1,10 @@
 # analyze.py
+#
 
 from datetime import date
 
 from analyze_disk import *
+from utils import *
 
 # ----------------------------------------------------------------------------
 # analyze(systems):
@@ -119,7 +121,8 @@ def analyze(systems):
         print()
 
         for key in list(invariants)[0:4]:
-            analyze_disk(sysname, key, 0.19)
+#            analyze_disk(allSystems, sysname, key, 0.19)
+            analyze_disk(systems, sysname, key, 0.19)
             print()
 
         # final print to separate system reports:

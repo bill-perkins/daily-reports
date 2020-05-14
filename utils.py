@@ -19,6 +19,8 @@ def getContent(filename):
        returns:  list of lines from given file
     """
 
+    global iam
+
     logcontent = []
 
     # open given filename, bring it in as a list:

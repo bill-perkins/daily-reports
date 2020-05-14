@@ -4,6 +4,8 @@ from datetime import datetime
 
 from utils import *
 
+import lclvars
+
 # ----------------------------------------------------------------------------
 # get_initial()
 # ----------------------------------------------------------------------------
@@ -79,7 +81,7 @@ def get_memory(inpline, log_entry, entry):
     # get the swap numbers:
     inpline = log_entry.pop()
     swapparts = inpline.split()
-    newswap = ['Swap:']
+    newswap = ['Swap']
     for n in swapparts[1:]:
         newswap.append(ms2bytes(n))
 
@@ -93,7 +95,6 @@ def get_memory(inpline, log_entry, entry):
 def parseEntry(log_entry):
     """ Return a dictionary from a given log entry.
     """
-    global curSysname   # the name of the system we're currently working on
 
     entry = []          # a list of key:value pairs
     log_entry.reverse()
@@ -106,7 +107,7 @@ def parseEntry(log_entry):
 
         # see if we have to add the hostname to this line:
         if inpline[0:4] in starters:
-            inpline = cursysname + ': ' + inpline
+            inpline = lclvars.curSysname + ': ' + inpline
 
         # get system name, date, uptime, load average:
         if ' EST ' in inpline or ' EDT ' in inpline:

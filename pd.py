@@ -13,7 +13,6 @@ import os
 #import pprint
 #pp = pprint.PrettyPrinter(indent=2, width=160)
 
-curSysname = ''             # Global current system name from logfile
 iam = sys.argv[0]           # Global program name
 
 from process import *

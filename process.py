@@ -2,6 +2,8 @@
 #
 import sys
 
+import lclvars
+
 from utils import *
 from getentry import *
 from parseentry import *
@@ -13,8 +15,6 @@ def process(logfile):
     """ Take a given log file and
         return the system name, and all the dated entries
     """
-
-    global curSysname
 
     print('processing:', logfile)
 
@@ -42,7 +42,7 @@ def process(logfile):
         print()
         return
 
-    curSysname = cur_syskey
+    lclvars.curSysname = cur_syskey
 
     while ix < inp_max:
         # declare logEntries here so we always have a fresh one:
@@ -66,8 +66,9 @@ def process(logfile):
             elif 'Systime' in thisKey:
                 curSystime = thisKey
             elif 'Sysname' in thisKey:
-                if thisVal[0] != curSysname:
+                if thisVal[0] != lclvars.curSysname:
                     print("Foreign system name in input file: '" + thisVal[0] + "'")
+                    print("thisVal[0] =", thisVal[0], "lclvars.curSysname =", lclvars.curSysname)
                     sys.exit(1)
             elif 'Datetime' in thisKey:
                 logEntries[thisKey] = thisVal
@@ -77,6 +78,6 @@ def process(logfile):
         # create datedEntries using the datestamp for its keys:
         datedEntries[dateKey] = logEntries
 
-    return curSysname, datedEntries
+    return lclvars.curSysname, datedEntries
 
 # EOF:

@@ -26,12 +26,12 @@ def analyze(systems):
         print()
 
         # invariants dictionary, start fresh for each system:
-        invariants = {'/':   [0.0, 0.0, 0,0, 0,0], \
-                '/opt/sas':  [0.0, 0.0, 0,0, 0,0], \
-                '/sasdata':  [0.0, 0.0, 0,0, 0,0], \
-                '/sastmp':   [0.0, 0.0, 0,0, 0,0], \
-                'Mem':       [0.0, 0.0, 0,0, 0,0], \
-                'Swap:':     [0.0, 0.0, 0,0, 0,0], \
+        invariants = {'/':   [0.0, 0.0, 0.0, 0.0], \
+                '/opt/sas':  [0.0, 0.0, 0.0, 0.0], \
+                '/sasdata':  [0.0, 0.0, 0.0, 0.0], \
+                '/sastmp':   [0.0, 0.0, 0.0, 0.0], \
+                'Mem':       [0.0, 0.0, 0.0, 0.0], \
+                'Swap':      [0.0, 0.0, 0.0, 0.0], \
                 'ping test': '',  \
                 'services':  '',  \
                 'Uptime':   '' }
@@ -110,19 +110,35 @@ def analyze(systems):
                     continue
 
                 # see if the key is one of the disks:
-                if key in list(invariants)[0:4]:
-                    if value == '' or value[0] == 0.0:
+                # value is from invariants
+                # val is what we are currently reading
+                # leave sastmp out of it, it changes too much:
+                if key in list(invariants)[0:3]:
+                    if value[0] == 0.0:
                         invariants[key] = val # set 'was' values
                     else:
-                        chk_variance(invariants[key], value, variance)
+                        # look for size change:
+                        change = abs(value[0] - val[0])
+                        if change != 0.0:
+                            print(thisdate, key.ljust(8), "size change from", value[0], "to", val[0])
+                            value[0] = val[0]
+
+                        # look for a use% change > variance:
+                        change = abs(value[1] - val[1])
+                        pct = change / value[1]
+                        if pct * 100 > variance:
+                            print(thisdate, 'usage change:', key.ljust(8) + \
+                                    '{:4.1%}: from '.format(pct).rjust(16) + \
+                                    humanize(value[1]).rjust(6), 'to', humanize(val[1]).rjust(6))
+                            value[1] = val[1]
 
                 else:   # we're looking at a different invariant key
-                    if value == '' or value == 0.0:
+                    if value == [0.0, 0.0, 0.0, 0.0]:
                         pass
                     elif value != val[0]:
                         print(thisdate, key + \
-                                ": expected: '" + str(value) + \
-                                "', found: '" + str(val[0]) + "'")
+                                ": from '" + str(value) + \
+                                "', to '" + str(val[0]) + "'")
 
                     invariants[key] = val[0]
                     continue

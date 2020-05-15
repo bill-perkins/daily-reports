@@ -10,33 +10,6 @@ starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
 
 oneday = timedelta(days = 1) # Global timedelta of one day
 
-# ----------------------------------------------------------------------------
-# getContent(filename)
-# ----------------------------------------------------------------------------
-def getContent(filename):
-    """bring the contents of the given input file into a list,
-       and return the list.
-       filename: name of the file we're processing (daily.log)
-       returns:  list of lines from given file
-    """
-
-    logcontent = []
-
-    # open given filename, bring it in as a list:
-    try:
-        with open(filename, 'r') as inpfile:
-            logcontent = inpfile.readlines()
-
-    except FileNotFoundError as err:
-        print('getContent():', str(err))
-        sys.exit(0)
-
-    except PermissionError as err:
-        print('getContent():', str(err))
-        sys.exit(0)
-
-    return logcontent
-
 # -----------------------------------------------------------------------------
 # humanize(number)- change number to human-readable format
 # -----------------------------------------------------------------------------

@@ -18,17 +18,19 @@ def process(logfile):
 
     print('processing:', logfile)
 
-    inp_file = getContent(logfile)      # get entire file into inp_file
-    inp_max = len(inp_file)             # lines in file
-    ix = 0                         # current index into inp_file
-    cur_syskey = ''                     # current system name
+    ix = 0                  # current index into inp_file
+    cur_syskey = ''         # current system name
+    inp_entry = []          # create local entry list
+    out_entry = []          # create local entry list
+    datedEntries = {}       # dictionary as datestamp: logEntries
+    curSystime = ''         # system time of this entry
 
-    inp_entry = []                      # create local entry list
-    out_entry = []                      # create local entry list
+    inp_file = getContent(logfile) # bring file into inp_file
+    if len(inp_file) == 0:
+        print('process(): empty file', logfile)
+        return None, None
 
-    datedEntries = {}                   # dictionary as datestamp: logEntries
-
-    curSystime = ''                     # system time of this entry
+    inp_max = len(inp_file) # lines in file
 
     # get the hostname out of the log file:
     for line in inp_file:

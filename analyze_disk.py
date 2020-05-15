@@ -16,8 +16,8 @@ def get_avg(systems, sysname, which_disk):
 
     datedEntries = systems[sysname]
     entry_dates = sorted(datedEntries)
-    if len(entry_dates[0]) == 0:
-        entry_dates.pop(0) # get rid of that annoying blank entry at the start
+#    if len(entry_dates[0]) == 0:
+#        entry_dates.pop(0) # get rid of that annoying blank entry at the start
 
     #---------------------------------------------------------------------
     for datestamp in entry_dates:

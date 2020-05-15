@@ -5,7 +5,6 @@ import sys
 import lclvars
 
 from utils import *
-from getentry import *
 from parseentry import *
 
 # ----------------------------------------------------------------------------

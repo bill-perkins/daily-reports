@@ -101,10 +101,10 @@ def analyze(sysname, sysdata):
                 downlist = entry['DOWN']
                 dLines = downlist[0]
                 if len(dLines) == 1:
-                    print(thisdate, '1 service was down:')
+                    print(thisdate, '(1) service was down:')
                     print('          ', dLines[0])
                 else:
-                    print(thisdate, len(dLines), 'services were down:')
+                    print(thisdate, '(' + str(len(dLines)) + ') services were down:')
                     for dLine in dLines:
                         print('          ', dLine)
 

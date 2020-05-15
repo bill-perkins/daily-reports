@@ -25,26 +25,32 @@ if __name__ == '__main__':
     allSystems = {}         # all the system data
 
     if len(sys.argv) == 1:
-        arglist = ['daily.log']
+        arglist = ['daily.log'] # use default
     else:
-        arglist = sys.argv[1:]
+        arglist = sys.argv[1:]  # use what they give us
 
-    for inpfile in arglist:
+    for inpfile in arglist:     # go through given files
         sysname, entries = process(inpfile)
-        allSystems[sysname] = entries
+        if sysname != None:
+            allSystems[sysname] = entries
 
     print()
 
     # display list of systems we found:
     syslist = list(allSystems)
-    print('Systems:')
-    for line in syslist:
-        print("    " + line)
+    if len(syslist) > 1:
+        print('Systems:')
+        for line in syslist:
+            print("    " + line)
 
-    print()
+        print()
 
-    analyze(allSystems)
-    print()
+    # analyze the systems:
+    if len(syslist) > 0:
+        for sysname in sorted(syslist):
+            analyze(sysname, allSystems)
+
+        print()
 
 ##------------------------------------------------------------------------------
 ## pretty-print the resulting dictionary:

@@ -15,7 +15,7 @@ def get_initial(inpline, log_entry, entry):
 
     datestamp = datetime.strptime(parts[1], '%a %b %d %H:%M:%S %Z %Y')
 
-    entry.append(['Datestamp:', str(datestamp.date())])
+    entry.append(['Datestamp', str(datestamp.date())])
     entry.append(['Systime', str(datestamp.time())])
     entry.append(['Datetime', datestamp])
     entry.append(['Sysname', parts[0]]) # system name

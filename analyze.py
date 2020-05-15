@@ -20,6 +20,9 @@ def analyze(sysname, sysdata):
     nexttime = date(2020,1,3)
 
     datedEntries = sysdata[sysname]
+    if len(datedEntries) == 0:
+        print('no entries for', sysname)
+        return
 
     print('Analyzing system', sysname + ':')
     print()
@@ -35,10 +38,11 @@ def analyze(sysname, sysdata):
             'services':  '',  \
             'Uptime':   '' }
 
-    # grab logs in date order:
+    # make sorted list of dates:
     entry_dates = sorted(datedEntries)
-    if len(entry_dates[0]) == 0:
-        entry_dates.pop(0) # get rid of that annoying blank entry at the start
+
+#    if len(entry_dates[0]) == 0:
+#        entry_dates.pop(0) # get rid of that annoying blank entry at the start
 
     # analyze each dated entry:
     for datestamp in entry_dates:

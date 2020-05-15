@@ -1,4 +1,5 @@
 # utility functions for this project
+import sys
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
@@ -19,8 +20,6 @@ def getContent(filename):
        returns:  list of lines from given file
     """
 
-    global iam
-
     logcontent = []
 
     # open given filename, bring it in as a list:
@@ -28,8 +27,12 @@ def getContent(filename):
         with open(filename, 'r') as inpfile:
             logcontent = inpfile.readlines()
 
-    except IOError as err:
-        print(iam + ': getContent():', str(err))
+    except FileNotFoundError as err:
+        print('getContent():', str(err))
+        sys.exit(0)
+
+    except PermissionError as err:
+        print('getContent():', str(err))
         sys.exit(0)
 
     return logcontent

@@ -24,6 +24,7 @@ def analyze(sysname, sysdata):
         print('no entries for', sysname)
         return
 
+    print('# ----------------------------------------------------------------------------')
     print('Analyzing system', sysname + ':')
     print()
 
@@ -32,17 +33,14 @@ def analyze(sysname, sysdata):
             '/opt/sas':  [0.0, 0.0, 0.0, 0.0], \
             '/sasdata':  [0.0, 0.0, 0.0, 0.0], \
             '/sastmp':   [0.0, 0.0, 0.0, 0.0], \
-            'Mem':       [0.0, 0.0, 0.0, 0.0], \
             'Swap':      [0.0, 0.0, 0.0, 0.0], \
+            'Mem':       [0.0, 0.0, 0.0, 0.0], \
             'ping test': '',  \
             'services':  '',  \
-            'Uptime':   '' }
+            'Uptime':    '' }
 
     # make sorted list of dates:
     entry_dates = sorted(datedEntries)
-
-#    if len(entry_dates[0]) == 0:
-#        entry_dates.pop(0) # get rid of that annoying blank entry at the start
 
     # analyze each dated entry:
     for datestamp in entry_dates:
@@ -97,6 +95,7 @@ def analyze(sysname, sysdata):
                 print(thisdate, 'first appearance of ping test')
                 continue
 
+            # services:
             if key == 'services' and val[0] != 'OK':
                 downlist = entry['DOWN']
                 dLines = downlist[0]
@@ -116,23 +115,32 @@ def analyze(sysname, sysdata):
             # value is from invariants
             # val is what we are currently reading
             # leave sastmp out of it, it changes too much:
-            if key in list(invariants)[0:3]:
+            if key in list(invariants)[0:5]:
                 if value[0] == 0.0:
                     invariants[key] = val # set 'was' values
-                else:
-                    # look for size change:
+                elif key != '/sastmp':
+                    # look for size change (1st in list):
                     change = abs(value[0] - val[0])
                     if change != 0.0:
                         print(thisdate, key.ljust(8), "size change from", value[0], "to", val[0])
                         value[0] = val[0]
 
-                    # look for a use% change > variance:
+                    # look for a use% change (2nd in list) > variance:
                     change = abs(value[1] - val[1])
-                    pct = change / value[1]
-                    if pct * 100 > variance:
+                    if value[1] == 0:
+                        pct = 0
+                    else:
+                        pct = change / value[1]
+
+                    if key != 'Swap' and pct * 100 > variance:
                         print(thisdate, 'usage change:', key.ljust(8) + \
-                                '{:4.1%}: from '.format(pct).rjust(16) + \
+                                ': {:4.1%}: from '.format(pct).rjust(16) + \
                                 humanize(value[1]).rjust(6), 'to', humanize(val[1]).rjust(6))
+                        value[1] = val[1]
+                    elif key == 'Swap' and change != 0.0:
+                        print(thisdate, 'usage change:', key.ljust(10) + \
+                                ': from ' + \
+                                humanize(value[1]), 'to', humanize(val[1]))
                         value[1] = val[1]
 
             else:   # we're looking at a different invariant key
@@ -140,8 +148,8 @@ def analyze(sysname, sysdata):
                     pass
                 elif value != val[0]:
                     print(thisdate, key + \
-                            ": from '" + str(value) + \
-                            "', to '" + str(val[0]) + "'")
+                            ": size change from '" + str(value) + \
+                            "' to '" + str(val[0]) + "'")
 
                 invariants[key] = val[0]
                 continue
@@ -149,7 +157,8 @@ def analyze(sysname, sysdata):
     print(datestamp, 'Final entry')
     print()
 
-    for key in list(invariants)[0:4]:
+    # basic analysis on each of the disks:
+    for key in list(invariants)[0:5]:
         analyze_disk(sysdata, sysname, key, 0.19)
         print()
 

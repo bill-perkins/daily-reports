@@ -80,6 +80,11 @@ def process(logfile):
         print('process(): empty file', logfile)
         return None, None
 
+    for line in inp_file:
+        if 'corp.locaL' in line:
+            print('    we have the locaL issue in:', logfile)
+            break;
+
     # get the hostname out of the log file:
     for line in inp_file:
         if 'corp.local' in line and ' ping ' not in line:
@@ -119,9 +124,10 @@ def process(logfile):
                 curSystime = key
             elif 'Sysname' in key:
                 if val[0] != lclvars.curSysname:
-                    print("Foreign system name in input file: '" + val[0] + "'")
-                    print("val[0] =", val[0], "lclvars.curSysname =", lclvars.curSysname)
-                    sys.exit(1)
+                    if 'locaL' not in val[0]:
+                        print("Foreign system name in input file: '" + val[0] + "'")
+                        print("val[0] =", val[0], "lclvars.curSysname =", lclvars.curSysname)
+                        sys.exit(1)
             elif 'Datetime' in key:
                 logEntries[key] = val
             else:

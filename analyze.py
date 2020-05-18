@@ -29,7 +29,9 @@ def analyze(sysname, sysdata):
     print()
 
     # invariants dictionary, start fresh for each system:
-    invariants = {'/':   [0.0, 0.0, 0.0, 0.0], \
+    invariants = { \
+            'Uptime':    '', \
+            '/':         [0.0, 0.0, 0.0, 0.0], \
             '/opt/sas':  [0.0, 0.0, 0.0, 0.0], \
             '/sasdata':  [0.0, 0.0, 0.0, 0.0], \
             '/sastmp':   [0.0, 0.0, 0.0, 0.0], \
@@ -37,8 +39,9 @@ def analyze(sysname, sysdata):
             'Mem':       [0.0, 0.0, 0.0, 0.0], \
             'ping test': '',  \
             'services':  '',  \
-            'Uptime':    '' }
+            }
 
+    disk_invariants = ['/', '/opt/sas', '/sasdata', '/sastmp', 'Swap']
     # make sorted list of dates:
     entry_dates = sorted(datedEntries)
 
@@ -115,10 +118,16 @@ def analyze(sysname, sysdata):
             # value is from invariants
             # val is what we are currently reading
             # leave sastmp out of it, it changes too much:
-            if key in list(invariants)[0:5]:
+            if key in disk_invariants:
                 if value[0] == 0.0:
                     invariants[key] = val # set 'was' values
-                elif key != '/sastmp':
+                    continue;
+
+                if len(val) > 3:
+                    if val[3] > 89.0:
+                        print(thisdate, key, 'usage over 89%:', str(val[3]) + '%')
+
+                if key != '/sastmp':
                     # look for size change (1st in list):
                     change = abs(value[0] - val[0])
                     if change != 0.0:
@@ -158,7 +167,7 @@ def analyze(sysname, sysdata):
     print()
 
     # basic analysis on each of the disks:
-    for key in list(invariants)[0:5]:
+    for key in disk_invariants:
         analyze_disk(sysdata, sysname, key, 0.19)
         print()
 

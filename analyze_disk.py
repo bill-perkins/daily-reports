@@ -30,6 +30,9 @@ def get_avg(systems, sysname, which_disk):
             print('*** missing disk entry for', which_disk, 'on:', datestamp)
             print()
             continue # continue anyway
+        except ValueError as err:
+            t, u, a = entry[which_disk]
+            p = 0
 
         total.append(t)
         used.append(u)
@@ -66,13 +69,21 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
 
     logStart = entry_dates[1]
     entry = datedEntries[logStart]
-    t, u, a, p = entry[which_disk]
+    if len(entry[which_disk]) == 3:
+        t, u, a = entry[which_disk]
+        p = 0
+    else:
+        t, u, a, p = entry[which_disk]
     print('       ', logStart, which_disk, "started at:", humanize(u).rjust(6), \
             'used,', humanize(a).rjust(6), 'available,', str(p) + '% used')
 
     logEnds  = entry_dates[-1]
     entry = datedEntries[logEnds]
-    t, u, a, p = entry[which_disk]
+    if len(entry[which_disk]) == 3:
+        t, u, a = entry[which_disk]
+        p = 0
+    else:
+        t, u, a, p = entry[which_disk]
     print('       ', logEnds,  which_disk, "ended at:  ", humanize(u).rjust(6), \
             'used,', humanize(a).rjust(6), 'available,', str(p) + '% used')
 

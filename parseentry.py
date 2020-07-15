@@ -142,8 +142,10 @@ def parseEntry(log_entry):
 
         # check services:
         if 'services' in inpline:
-            if inpline.split()[2] == 'OK':
-                entry.append(['services', 'OK'])
+            parts = inpline.split()
+            if len(parts) > 2:
+                if inpline.split()[2] == 'OK':
+                    entry.append(['services', 'OK'])
             else:
                 downlist = []   # list of downed services
                 entry.append(['services', 'some services were DOWN:'])
@@ -154,8 +156,15 @@ def parseEntry(log_entry):
                         continue
 
                     parts = inpline.split()
-                    downlist.append(parts[0])
-                    inpline = log_entry.pop()
+                    if 'Denodo' in parts[0]: # HACK
+                        downlist.append(inpline.rstrip())
+                    else:
+                        downlist.append(parts[0])
+
+                    if len(log_entry) > 0:
+                        inpline = log_entry.pop()
+                    else:
+                        break
 
                 entry.append(['DOWN', downlist])
 

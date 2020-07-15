@@ -12,7 +12,7 @@ from utils import *
 def analyze(sysname, sysdata):
     """ Look for changing immutable values.
         Immutable values are set by the first log entry processed.
-        input: systems is a dictionary of sysname: datedEntries
+        input: sysdata is a dictionary of sysname: datedEntries
     """
 
     global oneday
@@ -47,10 +47,15 @@ def analyze(sysname, sysdata):
 
     # analyze each dated entry:
     for datestamp in entry_dates:
+        if datestamp == '':
+            continue
+
         # entry is the log dictionary for this datestamp:
         entry = datedEntries[datestamp]
 
         # get a date object for this datestamp:
+#        print('datestamp:', datestamp)
+#        print('len(datestamp):', len(datestamp))
         thisdate = date(int(datestamp[0:4]), \
                 int(datestamp[5:7]), \
                 int(datestamp[8:10]))   # year, month, day
@@ -121,7 +126,7 @@ def analyze(sysname, sysdata):
             if key in disk_invariants:
                 if value[0] == 0.0:
                     invariants[key] = val # set 'was' values
-                    continue;
+                    continue
 
                 if len(val) > 3:
                     if val[3] > 89.0:
@@ -169,7 +174,7 @@ def analyze(sysname, sysdata):
     # basic analysis on each of the disks:
     for key in disk_invariants:
         analyze_disk(sysdata, sysname, key, 0.19)
-        print()
+#        print()
 
     # final print to separate system reports:
     print()

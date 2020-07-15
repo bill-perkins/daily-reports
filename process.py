@@ -49,13 +49,14 @@ def getEntry(inpdata):
 
     outlist = []
 
-    line = inpdata.popleft()
-    while line[0:4] != '----':
-        outlist.append(line)
-        try:
-            line = inpdata.popleft()
-        except IndexError as err:
-            return None
+    if len(inpdata) > 1:
+        line = inpdata.popleft()
+        while line[0:4] != '----':
+            outlist.append(line)
+            try:
+                line = inpdata.popleft()
+            except IndexError as err:
+                return None
 
     return outlist
 
@@ -105,7 +106,9 @@ def process(logfile):
 
         # read in a full log entry:
         inp_entry = getEntry(inp_file)
-        if inp_entry == None:
+#        print('inp_entry:', inp_entry)
+#        print('len(inp_entry):', len(inp_entry))
+        if inp_entry == None or len(inp_entry) == 0:
             break;
 
         # parse inp_entry into a list of key:value pairs in out_entry

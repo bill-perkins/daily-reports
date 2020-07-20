@@ -105,18 +105,23 @@ def analyze(sysname, sysdata):
 
             # services:
             if key == 'services' and val[0] != 'OK':
+                # val is 'denodo services:'
+                # print('key: services, val:', val)
                 downlist = entry['DOWN']
                 dLines = downlist[0]
+                if len(dLines) == 0:
+                    continue
                 if len(dLines) == 1:
                     print(thisdate, '(1) service was DOWN:')
                     print('          ', dLines[0])
+                    print()
                 else:
                     print(thisdate, '(' + str(len(dLines)) + ') services were DOWN:')
                     for dLine in dLines:
                         print('          ', dLine)
+                    print()
 
                 # final print to separate downed services:
-                print()
                 continue
 
             # see if the key is one of the disks:

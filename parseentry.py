@@ -142,33 +142,44 @@ def parseEntry(log_entry):
 
         # check services:
         if 'services' in inpline:
+            downlist = []   # list of downed services
             parts = inpline.split()
-            if len(parts) > 2:
+            if len(parts) > 2: # likely from one of the Viya servers
                 if inpline.split()[2] == 'OK':
                     entry.append(['services', 'OK'])
-            else:
-                downlist = []   # list of downed services
-                entry.append(['services', 'some services were DOWN:'])
+                else:
+                    entry.append(['services', 'some services were DOWN:'])
+                    inpline = log_entry.pop()
+                    while len(inpline) > 1:
+                        if 'Consul' in inpline:
+                            inpline = log_entry.pop()
+                            continue
+
+                        parts = inpline.split()
+                        if 'Denodo' in parts[0]: # HACK
+                            downlist.append(inpline.rstrip())
+                        else:
+                            downlist.append(parts[0])
+
+                        if len(log_entry) > 0:
+                            inpline = log_entry.pop()
+                        else:
+                            break
+
+                    entry.append(['DOWN', downlist])
+
+                continue
+            else: # from the Denodo service
+                entry.append(['services', 'denodo services:'])
                 inpline = log_entry.pop()
                 while len(inpline) > 1:
-                    if 'Consul' in inpline:
-                        inpline = log_entry.pop()
-                        continue
-
-                    parts = inpline.split()
-                    if 'Denodo' in parts[0]: # HACK
+                    if 'OK' not in inpline:
                         downlist.append(inpline.rstrip())
-                    else:
-                        downlist.append(parts[0])
-
                     if len(log_entry) > 0:
                         inpline = log_entry.pop()
                     else:
-                        break
-
+                        inpline = ''
                 entry.append(['DOWN', downlist])
-
-            continue
 
     return entry
 

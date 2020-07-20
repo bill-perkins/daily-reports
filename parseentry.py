@@ -173,7 +173,7 @@ def parseEntry(log_entry):
                 entry.append(['services', 'denodo services:'])
                 inpline = log_entry.pop()
                 while len(inpline) > 1:
-                    if 'OK' not in inpline:
+                    if 'is running' not in inpline and 'OK' not in inpline:
                         downlist.append(inpline.rstrip())
                     if len(log_entry) > 0:
                         inpline = log_entry.pop()

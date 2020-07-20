@@ -136,7 +136,9 @@ def parseEntry(log_entry):
         # check ping test:
         if 'ping test' in inpline:
             pingparts = inpline.split()
-            entry.append(['ping test', pingparts[2]])
+#            print('pingparts:', pingparts)
+            if len(pingparts) > 2:
+                entry.append(['ping test', pingparts[2]])
 
             continue
 
@@ -148,23 +150,24 @@ def parseEntry(log_entry):
                 if inpline.split()[2] == 'OK':
                     entry.append(['services', 'OK'])
                 else:
-                    entry.append(['services', 'some services were DOWN:'])
-                    inpline = log_entry.pop()
-                    while len(inpline) > 1:
-                        if 'Consul' in inpline:
-                            inpline = log_entry.pop()
-                            continue
+                    if len(log_entry) > 0:
+                        entry.append(['services', 'some services were DOWN:'])
+                        inpline = log_entry.pop()
+                        while len(inpline) > 1:
+                            if 'Consul' in inpline:
+                                inpline = log_entry.pop()
+                                continue
 
-                        parts = inpline.split()
-                        if 'Denodo' in parts[0]: # HACK
-                            downlist.append(inpline.rstrip())
-                        else:
-                            downlist.append(parts[0])
+                            parts = inpline.split()
+                            if 'Denodo' in parts[0]: # HACK
+                                downlist.append(inpline.rstrip())
+                            else:
+                                downlist.append(parts[0])
 
-                        if len(log_entry) > 0:
-                            inpline = log_entry.pop()
-                        else:
-                            break
+                            if len(log_entry) > 0:
+                                inpline = log_entry.pop()
+                            else:
+                                break
 
                     entry.append(['DOWN', downlist])
 

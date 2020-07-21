@@ -136,9 +136,11 @@ def parseEntry(log_entry):
         # check ping test:
         if 'ping test' in inpline:
             pingparts = inpline.split()
-#            print('pingparts:', pingparts)
+            # sometimes we come up with no 'OK' (even though we should), this migitates that:
             if len(pingparts) > 2:
                 entry.append(['ping test', pingparts[2]])
+            else:
+                entry.append(['ping test', log_entry.pop()])
 
             continue
 

@@ -166,9 +166,19 @@ def analyze(sysname, sysdata):
                 if value == [0.0, 0.0, 0.0, 0.0]:
                     pass
                 elif value != val[0]:
-                    print(thisdate, key + \
-                            ": size change from '" + str(value) + \
-                            "' to '" + str(val[0]) + "'")
+                    if key == 'ping test':
+                        print(thisdate, 'ping test:')
+#                        print(type(val[0]))
+#                        for v in list(val):
+#                            print(v)
+                        print(repr(val[0]))
+#                        print(val[0])
+#                        print()
+                        continue # skip changing the output value of the ping test
+                    else:
+                        print(thisdate, key + \
+                                ": change from '" + str(value) + \
+                                "' to '" + str(val[0]) + "'")
 
                 invariants[key] = val[0]
                 continue

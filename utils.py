@@ -11,6 +11,12 @@ starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
 oneday = timedelta(days = 1) # Global timedelta of one day
 
 # -----------------------------------------------------------------------------
+# phumanize(number)- change number to human-readable % format
+# -----------------------------------------------------------------------------
+def phumanize(f):
+    return '{:3.1f}'.format(f) + '%'
+
+# -----------------------------------------------------------------------------
 # humanize(number)- change number to human-readable format
 # -----------------------------------------------------------------------------
 def humanize(f):

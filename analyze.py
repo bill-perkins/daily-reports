@@ -54,8 +54,6 @@ def analyze(sysname, sysdata):
         entry = datedEntries[datestamp]
 
         # get a date object for this datestamp:
-#        print('datestamp:', datestamp)
-#        print('len(datestamp):', len(datestamp))
         thisdate = date(int(datestamp[0:4]), \
                 int(datestamp[5:7]), \
                 int(datestamp[8:10]))   # year, month, day
@@ -168,12 +166,7 @@ def analyze(sysname, sysdata):
                 elif value != val[0]:
                     if key == 'ping test':
                         print(thisdate, 'ping test:')
-#                        print(type(val[0]))
-#                        for v in list(val):
-#                            print(v)
                         print(repr(val[0]))
-#                        print(val[0])
-#                        print()
                         continue # skip changing the output value of the ping test
                     else:
                         print(thisdate, key + \
@@ -187,10 +180,11 @@ def analyze(sysname, sysdata):
     print()
 
     # basic analysis on each of the disks:
-    print('filesystem, size, avg(used), avg(avail), avg(% used), start date, used, avail, % used, end date, used, avail, %used, max usage', file=sys.stderr)
+    if lclvars.outfile != None:
+        print('filesystem, size, avg(used), avg(avail), avg(% used), start date, used, avail, % used, end date, used, avail, %used, max usage', file = lclvars.outfile)
+
     for key in disk_invariants:
         analyze_disk(sysdata, sysname, key, 0.19)
-#        print()
 
     # final print to separate system reports:
     print()

@@ -4,6 +4,8 @@ from statistics import mean
 
 from utils import *
 
+import lclvars
+
 # ----------------------------------------------------------------------------
 # get_avg()
 # ----------------------------------------------------------------------------
@@ -58,12 +60,14 @@ def get_avg(systems, sysname, which_disk):
 def analyze_disk(systems, sysname, which_disk, variance = 0.21):
     """ Analyze a specific disks entries in systems{}
     """
-
     csvline = ''
 
     used_avg, avail_avg, usep_avg, max_used = get_avg(systems, sysname, which_disk)
     if avail_avg == 0.0:
         return
+
+    datedEntries = systems[sysname]
+    entry_dates = sorted(systems[sysname])
 
     print("Analyzing '" + str(which_disk) + "'file system of", sysname + ':')
     print()
@@ -73,10 +77,6 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
     print('avail avg :'.rjust(19), humanize(avail_avg).rjust(6))
     print('pct avg   :'.rjust(19), str(round(usep_avg, 1)).rjust(5) + '%')
     print()
-
-
-    datedEntries = systems[sysname]
-    entry_dates = sorted(systems[sysname])
 
     #---------------------------------------------------------------------
     # spit out where we started, where we ended:
@@ -119,6 +119,9 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
     # filesystem, size, avg(used), avg(avail), avg(% used),
     #   start date, used, avail, % used,
     #   end date, used, avail, %used, max usage:
-    print(csvline, file = sys.stderr)
+#    print('type(lclvars.outfile):', type(lclvars.outfile))
+#    print(lclvars.outfile)
+    if lclvars.outfile != None:
+        print(csvline, file = lclvars.outfile)
 
 # EOF:

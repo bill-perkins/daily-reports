@@ -15,6 +15,7 @@ def get_avg(systems, sysname, which_disk):
     used_avg  = 0.0
     avail_avg = 0.0
     usep_avg  = 0.0
+    max_used = 0.0
 
     datedEntries = systems[sysname]
     entry_dates = sorted(datedEntries)
@@ -24,14 +25,15 @@ def get_avg(systems, sysname, which_disk):
         # entry is the dictionary for this datestamp
         entry = datedEntries[datestamp]
 
-        if which_disk in entry.keys():
-            try:
-                t, u, a, p = entry[which_disk]
-            except ValueError as err:
-                t, u, a = entry[which_disk]
-                p = 0
-        else:
+        if which_disk not in entry.keys():
             continue;
+
+        # get total, used, available, percent usage:
+        try:
+            t, u, a, p = entry[which_disk]
+        except ValueError as err:
+            t, u, a = entry[which_disk]
+            p = 0
 
         total.append(t)
         used.append(u)
@@ -40,6 +42,7 @@ def get_avg(systems, sysname, which_disk):
 
     if len(used) > 0:
         used_avg  = mean(used)
+        max_used = max(used)
 
     if len(avail) > 0:
         avail_avg = mean(avail)
@@ -47,18 +50,20 @@ def get_avg(systems, sysname, which_disk):
     if len(usep) > 0:
         usep_avg  = mean(usep)
 
-    return used_avg, avail_avg, usep_avg
+    return used_avg, avail_avg, usep_avg, max_used
 
 # ----------------------------------------------------------------------------
 # analyze_disk()
 # ----------------------------------------------------------------------------
 def analyze_disk(systems, sysname, which_disk, variance = 0.21):
-    """Analyze the disk entries in systems{}
+    """ Analyze a specific disks entries in systems{}
     """
 
-    used_avg, avail_avg, usep_avg = get_avg(systems, sysname, which_disk)
+    csvline = ''
+
+    used_avg, avail_avg, usep_avg, max_used = get_avg(systems, sysname, which_disk)
     if avail_avg > 0.0: # HACK: if avail_avg is 0, we don't have this disk
-        print('Analyzing',  which_disk, 'file system of', sysname + ':')
+        print("Analyzing '" + str(which_disk) + "'file system of", sysname + ':')
         print()
 
         print ('    Averages:')
@@ -66,6 +71,7 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
         print('avail avg :'.rjust(19), humanize(avail_avg).rjust(6))
         print('pct avg   :'.rjust(19), str(round(usep_avg, 1)).rjust(5) + '%')
         print()
+
 
         datedEntries = systems[sysname]
         entry_dates = sorted(systems[sysname])
@@ -75,7 +81,7 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
         print('    Start and end values:')
 
         logStart = entry_dates[1]
-        entry = datedEntries[logStart]
+        entry    = datedEntries[logStart]
         if which_disk in entry.keys():
             if len(entry[which_disk]) == 3:
                 t, u, a = entry[which_disk]
@@ -85,8 +91,13 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
             print('       ', logStart, which_disk, "started at:", humanize(u).rjust(6), \
                     'used,', humanize(a).rjust(6), 'available,', str(p) + '% used')
 
-        logEnds  = entry_dates[-1]
-        entry = datedEntries[logEnds]
+            csvline = str(which_disk) + ', '
+            csvline += humanize(t) + ', '
+            csvline += humanize(used_avg) + ', ' + humanize(avail_avg) + ', ' + phumanize(usep_avg) + ', '
+            csvline += logStart + ', ' + humanize(u) + ', ' + humanize(a) + ', ' + phumanize(p) + ', '
+
+        logEnds = entry_dates[-1]
+        entry   = datedEntries[logEnds]
         if which_disk in entry.keys():
             if len(entry[which_disk]) == 3:
                 t, u, a = entry[which_disk]
@@ -95,6 +106,15 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
                 t, u, a, p = entry[which_disk]
             print('       ', logEnds,  which_disk, "ended at:  ", humanize(u).rjust(6), \
                     'used,', humanize(a).rjust(6), 'available,', str(p) + '% used')
-        print()
+
+            csvline += logEnds + ', ' + humanize(u) + ', ' + humanize(a) + ', ' + phumanize(p) + ', '
+            csvline += humanize(max_used) + ', '
+
+            print()
+
+        # filesystem, size, avg(used), avg(avail), avg(% used),
+        #   start date, used, avail, % used,
+        #   end date, used, avail, %used, max usage:
+        print(csvline, file = sys.stderr)
 
 # EOF:

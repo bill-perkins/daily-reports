@@ -187,6 +187,7 @@ def analyze(sysname, sysdata):
     print()
 
     # basic analysis on each of the disks:
+    print('filesystem, size, avg(used), avg(avail), avg(% used), start date, used, avail, % used, end date, used, avail, %used, max usage', file=sys.stderr)
     for key in disk_invariants:
         analyze_disk(sysdata, sysname, key, 0.19)
 #        print()

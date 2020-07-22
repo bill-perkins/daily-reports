@@ -14,7 +14,9 @@ import os
 #pp = pprint.PrettyPrinter(indent=2, width=160)
 
 iam = sys.argv[0]           # Global program name
+outname = ''                # Global output name
 
+import lclvars
 from process import *
 from analyze import *
 
@@ -24,10 +26,17 @@ from analyze import *
 if __name__ == '__main__':
     allSystems = {}         # all the system data
 
-    if len(sys.argv) == 1:
+    iam = sys.argv.pop(0)    # Global program name
+    if len(sys.argv) > 0:
+        if sys.argv[0] == '-c':
+            sys.argv.pop(0)
+            outname = sys.argv.pop(0)
+            lclvars.outfile = open(outname, "w")
+
+    if len(sys.argv) == 0:
         arglist = ['daily.log'] # use default
     else:
-        arglist = sys.argv[1:]  # use what they give us
+        arglist = sys.argv[:]   # or use what they give us
 
     for inpfile in arglist:     # go through given files
         sysname, entries = process(inpfile)
@@ -51,6 +60,9 @@ if __name__ == '__main__':
             analyze(sysname, allSystems)
 
         print()
+
+    if lclvars.outfile != None:
+        lclvars.outfile.close()
 
 ##------------------------------------------------------------------------------
 ## pretty-print the resulting dictionary:

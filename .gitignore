@@ -12,3 +12,4 @@ prodlogs/
 devlogs/
 archive/
 *.out
+*.csv

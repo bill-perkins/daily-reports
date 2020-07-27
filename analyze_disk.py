@@ -69,7 +69,7 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
     datedEntries = systems[sysname]
     entry_dates = sorted(systems[sysname])
 
-    print("Analyzing '" + str(which_disk) + "'file system of", sysname + ':')
+    print("Analyzing '" + str(which_disk) + "' file system of", sysname + ':')
     print()
 
     print ('    Averages:')

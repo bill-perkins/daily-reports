@@ -37,7 +37,7 @@ if __name__ == '__main__':
     iam = sys.argv.pop(0)       # Global program name
     if len(sys.argv) > 0:       # check args
         # are the looking for help?
-        if len(sys.argv) > 0 and sys.argv[0] == '-?':
+        if sys.argv[0] == '-?':
             usage()
             sys.exit(1)
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
             lclvars.outfile = open(outname, "w")
 
         # any switch we don't recognize:
-        if sys.argv[0].startswith('-'):
+        if len(sys.argv) > 0 and sys.argv[0].startswith('-'):
             usage()
             sys.exit(1)
 

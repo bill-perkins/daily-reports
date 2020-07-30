@@ -21,18 +21,45 @@ from process import *
 from analyze import *
 
 # ----------------------------------------------------------------------------
+# usage()
+# ----------------------------------------------------------------------------
+def usage():
+    print(iam + ': usage:', iam, '[-c <disklog.csv>] [-?] [list of logfiles]')
+    print('    -c for a nice .csv disk report.')
+    print('    default logfile to process is daily.log.')
+
+# ----------------------------------------------------------------------------
 # main() part of the program
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
-    allSystems = {}         # all the system data
+    allSystems = {}             # all the system data
 
-    iam = sys.argv.pop(0)    # Global program name
-    if len(sys.argv) > 0:
+    iam = sys.argv.pop(0)       # Global program name
+    if len(sys.argv) > 0:       # check args
+        # are the looking for help?
+        if len(sys.argv) > 0 and sys.argv[0] == '-?':
+            usage()
+            sys.exit(1)
+
+        # do they want a disk report?
         if sys.argv[0] == '-c':
             sys.argv.pop(0)
+
+            # sanity check:
+            if len(sys.argv) == 0:
+                usage();
+                sys.exit(1)
+
+            # create .csv output file:
             outname = sys.argv.pop(0)
             lclvars.outfile = open(outname, "w")
 
+        # any switch we don't recognize:
+        if sys.argv[0].startswith('-'):
+            usage()
+            sys.exit(1)
+
+    # did they give us any files to process?
     if len(sys.argv) == 0:
         arglist = ['daily.log'] # use default
     else:

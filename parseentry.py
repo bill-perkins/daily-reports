@@ -97,16 +97,17 @@ def parseEntry(log_entry):
     """
 
     entry = []          # a list of key:value pairs
-    log_entry.reverse()
+    log_entry.reverse() # for faster pop()s
 
     # parse each line:
     while len(log_entry) > 0:
-        inpline = log_entry.pop().strip()
+#        inpline = log_entry.pop().strip()
+        inpline = log_entry.pop()
         if len(inpline) == 0:
             continue # skip blank lines
 
         # see if we have to add the hostname to this line:
-        if inpline[0:4] in starters:
+        if inpline[0:4] in starters: #'Mon ' - 'Sun '
             inpline = lclvars.curSysname + ': ' + inpline
 
         # get system name, date, uptime, load average:
@@ -123,7 +124,8 @@ def parseEntry(log_entry):
         if 'Use%' in inpline:
             entry.append(['Diskhdr', 'Size', 'Used', 'Avail', 'Use%'])
             while len(inpline) > 0 and log_entry:
-                inpline = log_entry.pop().strip()
+#                inpline = log_entry.pop().strip()
+                inpline = log_entry.pop()
                 if len(inpline) > 0 and '----' not in inpline:
                     parts = inpline.split()
                     entry.append([parts[5], \

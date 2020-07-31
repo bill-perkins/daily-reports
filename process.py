@@ -41,10 +41,8 @@ def getContent(filename):
 # ----------------------------------------------------------------------------
 def getEntry(inpdata):
     """ Bring in lines from deque until we see '----'.
-            inpdata:  deque of lines from getContent()
-
-        returns:
-            outlist:  list of lines in this entry
+        inpdata: deque of lines from getContent()
+        returns: outlist:  list of lines in this entry
     """
 
     outlist = []
@@ -52,11 +50,11 @@ def getEntry(inpdata):
     if len(inpdata) > 1:
         line = inpdata.popleft()
         while line[0:4] != '----':
-            outlist.append(line)
+            outlist.append(line.strip())    # trim any trailing NL chars
             try:
-                line = inpdata.popleft()
+                line = inpdata.popleft()    # get next line
             except IndexError as err:
-                return None
+                return None                 # nothing left
 
     return outlist
 
@@ -92,6 +90,7 @@ def process(logfile):
             cur_syskey = line.split(':')[0]
             break;
 
+    # sanity check: no hostname = we don't have sysname
     if cur_syskey == '':
         print("can't find hostname in", logfile)
         print('...skipping...')
@@ -106,10 +105,12 @@ def process(logfile):
 
         # read in a full log entry:
         inp_entry = getEntry(inp_file)
+        # inp_entry is a list of lines from the log for a single day
+
 #        print('inp_entry:', inp_entry)
 #        print('len(inp_entry):', len(inp_entry))
         if inp_entry == None or len(inp_entry) == 0:
-            break;
+            break; # file empty
 
         # parse inp_entry into a list of key:value pairs in out_entry
         out_entry = parseEntry(inp_entry)

@@ -54,10 +54,14 @@ if __name__ == '__main__':
             outname = sys.argv.pop(0)
             lclvars.outfile = open(outname, "w")
 
-        # any switch we don't recognize:
-        if len(sys.argv) > 0 and sys.argv[0].startswith('-'):
-            usage()
-            sys.exit(1)
+        # do we have any args left?
+        if len(sys.argv) > 0:
+            # put new switches here:
+            #
+            # any switch we don't recognize:
+            if sys.argv[0].startswith('-'):
+                usage()
+                sys.exit(1)
 
     # did they give us any files to process?
     if len(sys.argv) == 0:
@@ -88,6 +92,7 @@ if __name__ == '__main__':
 
         print()
 
+    # close the output file if we had one:
     if lclvars.outfile != None:
         lclvars.outfile.close()
 

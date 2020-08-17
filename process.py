@@ -1,5 +1,10 @@
 # process.py
+# imported by pd.py
 #
+# Take a given log file and return the system name,
+# along with all the dated entries in a dictionary
+#
+
 import sys
 from collections import deque
 
@@ -12,11 +17,11 @@ from parseentry import *
 # getContent(filename)
 # ----------------------------------------------------------------------------
 def getContent(filename):
-    """bring the contents of the given input file into a list,
-       and return the list.
-       filename: name of the file we're processing (daily.log)
-       returns:  deque of lines from given filename;
-                exits program if file not found or permissions error.
+    """ Bring the contents of the given input file into a list,
+        and return the list.
+        filename: name of the file we're processing (daily.log)
+        returns:  deque of lines from given filename;
+        sys.exit(1) if file not found or permissions error.
     """
 
     logcontent = []
@@ -54,7 +59,8 @@ def getEntry(inpdata):
             try:
                 line = inpdata.popleft()    # get next line
             except IndexError as err:
-                return None                 # nothing left
+#                return None                 # nothing left
+                break                       # return what we have
 
     return outlist
 
@@ -79,6 +85,7 @@ def process(logfile):
         print('process(): empty file', logfile)
         return None, None
 
+# probably don't need this any longer:
     for line in inp_file:
         if 'corp.locaL' in line:
             print('    we have the locaL issue in:', logfile)
@@ -104,11 +111,8 @@ def process(logfile):
         logEntries = {}  # dictionary with log parameter as key, value as value
 
         # read in a full log entry:
-        inp_entry = getEntry(inp_file)
         # inp_entry is a list of lines from the log for a single day
-
-#        print('inp_entry:', inp_entry)
-#        print('len(inp_entry):', len(inp_entry))
+        inp_entry = getEntry(inp_file)
         if inp_entry == None or len(inp_entry) == 0:
             break; # file empty
 
@@ -132,12 +136,12 @@ def process(logfile):
                         print("Foreign system name in input file: '" + val[0] + "'")
                         print("val[0] =", val[0], "lclvars.curSysname =", lclvars.curSysname)
                         sys.exit(1)
-            elif 'Datetime' in key:
-                logEntries[key] = val
             else:
+                # logEntries is the dictionary of entries
                 logEntries[key] = val
 
         # create datedEntries using the datestamp for its keys:
+        # datedEnties[dateKey] gets the dictionary of logEntries
         datedEntries[dateKey] = logEntries
 
     return lclvars.curSysname, datedEntries

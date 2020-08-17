@@ -2,7 +2,7 @@
 #
 # pd.py- process daily.log
 # simple script to take daily.log and convert to a dictionary,
-# and do some analysis of the data
+# then do some analysis of the data
 #
 
 # some standard python stuff
@@ -37,9 +37,9 @@ if __name__ == '__main__':
     iam = sys.argv.pop(0)       # Global program name
     if len(sys.argv) > 0:       # check args
         # are the looking for help?
-        if sys.argv[0] == '-?':
+        if sys.argv[0] == '-?' or sys.argv[0] == '-h' or sys.argv[0] == '--help':
             usage()
-            sys.exit(1)
+            sys.exit(0)
 
         # do they want a disk report?
         if sys.argv[0] == '-c':
@@ -69,6 +69,7 @@ if __name__ == '__main__':
     else:
         arglist = sys.argv[:]   # or use what they give us
 
+    # process input files:
     for inpfile in arglist:     # go through given files
         sysname, entries = process(inpfile)
         if sysname != None:
@@ -80,8 +81,8 @@ if __name__ == '__main__':
     syslist = list(allSystems)
     if len(syslist) > 1:
         print('Systems:')
-        for line in syslist:
-            print("    " + line)
+        for sysname in sorted(syslist):
+            print("    " + sysname)
 
         print()
 

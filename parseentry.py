@@ -93,7 +93,8 @@ def get_memory(inpline, log_entry, entry):
 # parseEntry(log_entry)
 # ----------------------------------------------------------------------------
 def parseEntry(log_entry):
-    """ Return a dictionary from a given log entry.
+    """ Return a list from the given log entry.
+        The list consists of what will be the key, and values for that key
     """
 
     entry = []          # a list of key:value pairs
@@ -101,10 +102,9 @@ def parseEntry(log_entry):
 
     # parse each line:
     while len(log_entry) > 0:
-#        inpline = log_entry.pop().strip()
         inpline = log_entry.pop()
         if len(inpline) == 0:
-            continue # skip blank lines
+            continue    # skip blank lines
 
         # see if we have to add the hostname to this line:
         if inpline[0:4] in starters: #'Mon ' - 'Sun '
@@ -124,7 +124,6 @@ def parseEntry(log_entry):
         if 'Use%' in inpline:
             entry.append(['Diskhdr', 'Size', 'Used', 'Avail', 'Use%'])
             while len(inpline) > 0 and log_entry:
-#                inpline = log_entry.pop().strip()
                 inpline = log_entry.pop()
                 if len(inpline) > 0 and '----' not in inpline:
                     parts = inpline.split()
@@ -182,10 +181,12 @@ def parseEntry(log_entry):
                 while len(inpline) > 1:
                     if 'is running' not in inpline and 'OK' not in inpline:
                         downlist.append(inpline.rstrip())
+
                     if len(log_entry) > 0:
                         inpline = log_entry.pop()
                     else:
                         inpline = ''
+
                 entry.append(['DOWN', downlist])
 
     return entry

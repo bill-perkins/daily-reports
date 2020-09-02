@@ -1,4 +1,5 @@
 # analyze_disk.py
+# Analyze a specific disks entries in systems{}
 
 from statistics import mean
 
@@ -7,9 +8,9 @@ from utils import *
 import lclvars
 
 # ----------------------------------------------------------------------------
-# get_avg()
+# get_total_avg()
 # ----------------------------------------------------------------------------
-def get_avg(systems, sysname, which_disk):
+def get_total_avg(systems, sysname, which_disk):
     total = []
     used  = []
     avail = []
@@ -62,7 +63,7 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
     """
     csvline = ''
 
-    used_avg, avail_avg, usep_avg, max_used = get_avg(systems, sysname, which_disk)
+    used_avg, avail_avg, usep_avg, max_used = get_total_avg(systems, sysname, which_disk)
     if avail_avg == 0.0:
         return
 
@@ -119,8 +120,6 @@ def analyze_disk(systems, sysname, which_disk, variance = 0.21):
     # filesystem, size, avg(used), avg(avail), avg(% used),
     #   start date, used, avail, % used,
     #   end date, used, avail, %used, max usage:
-#    print('type(lclvars.outfile):', type(lclvars.outfile))
-#    print(lclvars.outfile)
     if lclvars.outfile != None:
         print(csvline, file = lclvars.outfile)
 

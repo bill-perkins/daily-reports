@@ -109,7 +109,7 @@ def analyze(sysname, sysdata):
                 dLines = downlist[0]
                 if len(dLines) == 0:
                     continue
-                if len(dLines) == 1:
+                if len(dLines) == 1 and dLines[0] != 'sas-viya-dmtransformservices-default':
                     print(thisdate, '(1) service was DOWN:')
                     print('          ', dLines[0])
                     print()

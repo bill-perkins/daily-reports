@@ -72,17 +72,17 @@ def analyze(sysname, sysdata):
         # Search for changes to invariant data.
         # When something comes up different, complain about it,
         # then change the invariants list to the new value.
-        for key, value in list(invariants.items()):
+        for key, preval in list(invariants.items()):
             try:
-                val = entry[key]
+                curval = entry[key]
             except KeyError as err:
                 continue # key not there? Who cares?
 
-            # we have key and val, which may be a list:
+            # we have key and curval, which may be a list:
             if key == 'Uptime':
                 # Did we reboot?
-                if 'days' not in val[0]:
-                    hm = val[0].split(':')
+                if 'days' not in curval[0]:
+                    hm = curval[0].split(':')
                     dTime = timedelta(hours = int(hm[0]), minutes = int(hm[1]))
                     cTime = entry['Datetime'][0]
                     rebooted = cTime - dTime
@@ -102,9 +102,9 @@ def analyze(sysname, sysdata):
                 continue
 
             # services:
-            if key == 'services' and val[0] != 'OK':
-                # val is 'denodo services:'
-                # print('key: services, val:', val)
+            if key == 'services' and curval[0] != 'OK':
+                # curval is 'denodo services:'
+                # print('key: services, curval:', curval)
                 downlist = entry['DOWN']
                 dLines = downlist[0]
                 if len(dLines) == 0:
@@ -123,57 +123,58 @@ def analyze(sysname, sysdata):
                 continue
 
             # see if the key is one of the disks:
-            # value is from invariants
-            # val is what we are currently reading
+            # preval is from invariants
+            # curval is what we are currently reading
             # leave sastmp out of it, it changes too much:
             if key in disk_invariants:
-                if value[0] == 0.0:
-                    invariants[key] = val # set 'was' values
+                if preval[0] == 0.0:
+                    invariants[key] = curval # set 'was' values
                     continue
 
-                if len(val) > 3:
-                    if val[3] > 89.0:
-                        print(thisdate, key, 'usage over 89%:', str(val[3]) + '%')
+                if len(curval) > 3:
+                    if curval[3] > 89.0:
+                        print(thisdate, key, 'usage over 89%:', str(curval[3]) + '%')
 
                 if key != '/sastmp':
                     # look for size change (1st in list):
-                    change = abs(value[0] - val[0])
-                    if change != 0.0:
-                        print(thisdate, key.ljust(8), "size change from", value[0], "to", val[0])
-                        value[0] = val[0]
+                    size_change = abs(preval[0] - curval[0])
+                    if size_change != 0:
+                        print(thisdate, key.ljust(8), "size change from", preval[0], "to", curval[0])
+                        preval[0] = curval[0]
 
-                    # look for a use% change (2nd in list) > variance:
-                    change = abs(value[1] - val[1])
-                    if value[1] == 0:
-                        pct = 0
-                    else:
-                        pct = change / value[1]
+                    # look for usage change:
+                    used_was = round(preval[1] / preval[0] * 100, 1)    # % used was
+                    used_is  = round(curval[1] / curval[0] * 100, 1)    # % used is
+                    if 20 < abs(used_is - used_was):                    # 20% or greater
+                        chgsin = used_is - used_was                     # so we can do + or -
+                        change = abs(chgsin)                            # get the actual change
+                        if chgsin < 0:
+                            chgsin = -1
+                        else:
+                            chgsin = 1
 
-                    if key != 'Swap' and pct * 100 > variance:
-                        print(thisdate, 'usage change:', key.ljust(8) + \
-                                ': {:4.1%}: from '.format(pct).rjust(16) + \
-                                humanize(value[1]).rjust(6), 'to', humanize(val[1]).rjust(6))
-                        value[1] = val[1]
-                    elif key == 'Swap' and change != 0.0:
-                        print(thisdate, 'usage change:', key.ljust(10) + \
-                                ': from ' + \
-                                humanize(value[1]), 'to', humanize(val[1]))
-                        value[1] = val[1]
+                        change = round(change, 1)               # round it up, just 1 digit past decimal pt
+                        print(thisdate, 'usage change:', \
+                                key.ljust(8) + (str(chgsin * change) + '%').rjust(8), end='')
+                        print(' from:', (str(used_was) + '%').rjust(6), \
+                                'to:',  (str(used_is)  + '%').rjust(6))
 
-            else:   # we're looking at a different invariant key
-                if value == [0.0, 0.0, 0.0, 0.0]:
+                preval[1] = curval[1]   # set previous preval to current value
+
+            else:   # it's not in disk_invariants:
+                if preval == [0.0, 0.0, 0.0, 0.0]:
                     pass
-                elif value != val[0]:
+                elif preval != curval[0]:
                     if key == 'ping test':
                         print(thisdate, 'ping test:')
-                        print(repr(val[0]))
+                        print(repr(curval[0]))
                         continue # skip changing the output value of the ping test
                     else:
                         print(thisdate, key + \
-                                ": change from '" + str(value) + \
-                                "' to '" + str(val[0]) + "'")
+                                ": change from '" + str(preval) + \
+                                "' to '" + str(curval[0]) + "'")
 
-                invariants[key] = val[0]
+                invariants[key] = curval[0]
                 continue
 
     print(datestamp, 'Final entry')

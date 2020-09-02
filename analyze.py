@@ -109,6 +109,7 @@ def analyze(sysname, sysdata):
                 dLines = downlist[0]
                 if len(dLines) == 0:
                     continue
+                # we don't care to hear about sas-viya-dmtransformservices-default:
                 if len(dLines) == 1 and dLines[0] != 'sas-viya-dmtransformservices-default':
                     print(thisdate, '(1) service was DOWN:')
                     print('          ', dLines[0])
@@ -128,7 +129,7 @@ def analyze(sysname, sysdata):
             # leave sastmp out of it, it changes too much:
             if key in disk_invariants:
                 if preval[0] == 0.0:
-                    invariants[key] = curval # set 'was' values
+                    invariants[key] = curval # set 'previous' values
                     continue
 
                 if len(curval) > 3:

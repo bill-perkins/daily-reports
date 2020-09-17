@@ -1,5 +1,5 @@
 # analyze_disk.py
-# Analyze a specific disks entries in systems{}
+# Analyze a specific disk's entries in systems{}
 
 from statistics import mean
 
@@ -11,6 +11,8 @@ import lclvars
 # get_total_avg()
 # ----------------------------------------------------------------------------
 def get_total_avg(systems, sysname, which_disk):
+    """ Get total average disk usage of a given disk in a given system
+    """
     total = []
     used  = []
     avail = []
@@ -59,7 +61,11 @@ def get_total_avg(systems, sysname, which_disk):
 # analyze_disk()
 # ----------------------------------------------------------------------------
 def analyze_disk(systems, sysname, which_disk, variance = 0.21):
-    """ Analyze a specific disks entries in systems{}
+    """ Analyze a specific disk's entries in systems{}
+        systems-    data dictionary
+        sysname-    key for which system we're analyzing
+        which_disk- key for the disk we're anayzing
+        variance-   threshold to trigger output
     """
     csvline = ''
 

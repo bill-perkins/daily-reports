@@ -104,6 +104,7 @@ def process(logfile):
         print()
         return None, None
 
+    # here we would create a new System(cur_syskey):
     lclvars.curSysname = cur_syskey
 
     while True:

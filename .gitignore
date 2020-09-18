@@ -13,3 +13,4 @@ devlogs/
 archive/
 *.out
 *.csv
+tryme.py

@@ -43,6 +43,36 @@ def analyze(sysname, sysdata):
 
     disk_invariants = ['/', '/opt/sas', '/sasdata', '/sastmp', 'Swap']
     # make sorted list of dates:
+
+    # --- here we have something completely different:
+    # to start, we have three keys: name, uptime, load:
+    for sysptr in datedEntries:
+        print(sysptr.name)
+        for cmp_key in sysptr.get_keys():
+            entries = sysptr.get_entries(cmp_key)
+            cmpstr = '\'' + cmp_key + '\':'
+            if type(entries) == type([]):
+                print(cmpstr.ljust(14), len(entries), 'entries')
+            else:
+                print(cmpstr, '=', entries)
+
+
+#        entries = sysptr.get_entries('uptime')
+#        print('uptime entries:')
+#        print('len(entries):', len(entries))
+#        for x in entries:
+#            print(x)
+#
+#        print()
+#        print('load entries:')
+#        entries = sysptr.get_entries('load')
+#        print('len(entries):', len(entries))
+#        for x in entries:
+#            print(x)
+#
+        pass
+
+    """
     entry_dates = sorted(datedEntries)
 
     # analyze each dated entry:
@@ -190,5 +220,6 @@ def analyze(sysname, sysdata):
 
     # final print to separate system reports:
     print()
+    """
 
 # EOF:

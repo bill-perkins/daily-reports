@@ -13,6 +13,7 @@ class System:
         add_usage(key, usage_list)
     """
     # class variables get shared by all instances:
+    # (no class variables here)
 
     # ------------------------------------------------------------------------
     # __init__(name)
@@ -34,6 +35,20 @@ class System:
         self.ip_address = ip_address
 
     # ------------------------------------------------------------------------
+    # add_component(component_name, size=None)
+    # ------------------------------------------------------------------------
+    def add_component(self, component_name, size=None):
+        """ Add a given component name to _lcld{}.
+        """
+        if component_name not in self._lcld.keys():
+            self._lcld[component_name] = {'entries': []}
+            if size != None:
+                self._lcld[component_name]['size'] =  size
+        else:
+            print("    *** attempt to add component '" + component_name + "' to keys.")
+            print('    *** (component_name already exists)\n')
+
+    # ------------------------------------------------------------------------
     # add_disk(disk_name, disk_size)
     # ------------------------------------------------------------------------
     def add_disk(self, disk_name, disk_size):
@@ -51,6 +66,7 @@ class System:
     def add_usage(self, key, usage_list):
         """ Add a usage list to a given key (system component).
             A usage list will typically be [date, time, usage]
+            or maybe [dtobj, [components of message]]
         """
         if key in self._lcld.keys():
             self._lcld[key]['entries'].append(usage_list)
@@ -110,6 +126,8 @@ class System:
             dptr = self._lcld[key]
             if type(dptr) == type({}) and 'entries' in dptr.keys():
                 return dptr['entries']
+            else:
+                return dptr
 
     # ------------------------------------------------------------------------
     # 

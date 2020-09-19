@@ -35,8 +35,9 @@ if __name__ == '__main__':
     allSystems = {}             # all the system data
 
     iam = sys.argv.pop(0)       # Global program name
+
     if len(sys.argv) > 0:       # check args
-        # are the looking for help?
+        # are they looking for help?
         if sys.argv[0] == '-?' or sys.argv[0] == '-h' or sys.argv[0] == '--help':
             usage()
             sys.exit(0)

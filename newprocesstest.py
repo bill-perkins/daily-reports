@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# pd.py- process daily.log
+# newprocesstest.py- process daily.log
 # simple script to take daily.log and convert to a dictionary,
 # then do some analysis of the data
 #

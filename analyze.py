@@ -2,6 +2,7 @@
 #
 
 from datetime import date
+from datetime import timedelta
 
 from analyze_disk import *
 from utils import *
@@ -17,7 +18,11 @@ def analyze(sysname, sysdata):
 
     global oneday
     variance = 19.9
-    nexttime = date(2020,1,3)
+# project started 2020-01-03:
+#    nexttime = date(2020,1,3)
+    nextdate = date(2019, 1, 2)
+    lastdate = date(2019, 1, 2)
+    thisdate = date(2019, 1, 3)
 
     datedEntries = sysdata[sysname]
     if len(datedEntries) == 0:
@@ -56,13 +61,39 @@ def analyze(sysname, sysdata):
             else:
                 print(cmpstr, '=', entries)
 
+        print()
 
-#        entries = sysptr.get_entries('uptime')
-#        print('uptime entries:')
-#        print('len(entries):', len(entries))
-#        for x in entries:
-#            print(x)
-#
+        entries = sysptr.get_entries('uptime')
+        print(len(entries), 'uptime entries:')
+        for e in entries:
+            thisdate = e[0].date()
+            thistime = e[0].time()
+            if thisdate == lastdate:
+                continue
+
+            lastdate = thisdate
+
+            if thisdate != nextdate:
+                if nextdate != date(2019,1,2):
+                    print('   ', thisdate, '- unexpected datestamp, expected:', nextdate)
+                else:
+                    nextdate = thisdate
+                    print('   ', thisdate, '- Logging starts')
+
+            nextdate = thisdate + oneday
+
+            uptime = e[1]
+            if 'days,' not in uptime and 'day,' not in uptime:
+                reboottime = uptime[0].rstrip(',')
+                parts      = reboottime.split(':')
+                lclhours   = int(parts[0])
+                lclminutes = int(parts[1])
+                ago = timedelta(hours = lclhours, minutes = lclminutes)
+                rebootdate = e[0] - ago
+                print ('   ', rebootdate.date(), '- Rebooted @', rebootdate.time())
+                pass
+
+
 #        print()
 #        print('load entries:')
 #        entries = sysptr.get_entries('load')

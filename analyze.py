@@ -85,6 +85,8 @@ def analyze(sysname, sysdata):
 
             uptime = e[1]
             if 'days,' not in uptime and 'day,' not in uptime:
+                # means that we rebooted less than a day ago,
+                # so see if we can figure out when we did reboot:
                 reboottime = uptime[0].rstrip(',')
                 lclhours, lclminutes = reboottime.split(':')
                 ago = timedelta(hours = int(lclhours), minutes = int(lclminutes))
@@ -197,6 +199,32 @@ def analyze(sysname, sysdata):
             print()
 
         # --- Disk entries:
+#        keys = sysptr.get_keys()
+#        dsklist = []
+#        disklist = [key for key in keys if '/' in key]
+        disklist = sysptr.get_dskkeys()
+        print('disklist:', disklist)
+
+        for disk in disklist:
+            lcldisksize = sysptr.get_dsksize(disk)
+            entries = sysptr.get_entries(disk)
+            if entries != None:
+                print(len(entries), "'{}' entries:".format(disk))
+                for e in entries:
+                    thisdate = e[0].date()
+                    thistime = e[0].time()
+                    if thisdate == lastdate:
+                        continue
+
+                    lastdate = thisdate
+                    # do something with the data we have
+                    print('   ', thisdate, '-', e[1], 'used out of', lcldisksize)
+
+                print()
+        print()
+
+
+        """
         entries = sysptr.get_entries('<entry>')
         if entries != None:
             print(len(entries), '<entry> entries:')
@@ -256,6 +284,7 @@ def analyze(sysname, sysdata):
 
             print()
 
+        """
         pass
 
     """

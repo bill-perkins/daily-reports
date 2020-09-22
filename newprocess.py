@@ -102,18 +102,23 @@ def gather_data(lines):
             if 'uptime' not in syskeys:
                 sysobj.add_component('uptime')
 
-            if 'load' not in syskeys:
-                sysobj.add_component('load')
-
             if parts[3] == 'days,':
                 sysobj.add_usage('uptime', [dtobj, [parts[2], parts[3], parts[4]]])
             else:
                 sysobj.add_usage('uptime', [dtobj, [parts[2], parts[3]]])
 
-            sysobj.add_usage('load', [dtobj, [parts[-3], parts[-2], parts[-1]]])
+            if 'load' not in syskeys:
+                sysobj.add_component('load')
+
+            sysobj.add_usage('load', \
+                    [dtobj, \
+                    [parts[-3].rstrip(','), \
+                    parts[-2].rstrip(','), \
+                    parts[-1].rstrip(',')]])
 
             # get the next line: it's USER TTY FROM ...
             line = lines.pop()
+
             # keep popping lines until we hit a blank:
             while len(line) > 1:
                 line = lines.pop()
@@ -180,9 +185,19 @@ def gather_data(lines):
                 sysobj.add_component('Services')
 
             parts = line.split()
-            sysobj.add_usage('Services', [dtobj, parts[2]])
+            if parts[2] == 'OK':
+                sysobj.add_usage('Services', [dtobj, parts[2:]])
+                continue
+
+            outlist = ['Some services were DOWN:']
+            newline = lines.pop()
+            while len(newline) > 1:
+                parts = newline.split()
+                outlist.append(parts[0])
+                newline = lines.pop()
 
             # finished here:
+            sysobj.add_usage('Services', [dtobj, outlist])
             continue
 
         # NOTE: parse and process other lines here

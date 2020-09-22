@@ -99,9 +99,10 @@ class System:
         """
         dskeys = []
         keylist = self.get_keys()
-        for x in keylist:
-            if '/' in x:
-                dskeys.append(x)
+        dskeys = [key for key in keylist if '/' in key]
+#        for x in keylist:
+#            if '/' in x:
+#                dskeys.append(x)
 
         return dskeys
 

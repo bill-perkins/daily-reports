@@ -150,11 +150,11 @@ def gather_data(lines):
         if line.startswith('Filesystem'):
             line = lines.pop()
             while len(line) > 1 and not line.startswith('----'):
-                parts = line.split()
+                parts = line.split() # parts[1] is disk size, parts[5] is mount point
                 if parts[5] not in syskeys:
                     sysobj.add_disk(parts[5], parts[1])
 
-                sysobj.add_usage(parts[5], [dtobj, parts[2]])
+                sysobj.add_usage(parts[5], [dtobj, parts[2]]) # parts[2] is usage
                 line = lines.pop()
 
             # finished here:
@@ -165,6 +165,10 @@ def gather_data(lines):
             line = lines.pop()
             parts = line.split()
             sysobj.set_ip_address(parts[1])
+            # eat the rest of the lines:
+#            while len(line) > 0:
+#                line = line.pop()
+
             # finished here:
             continue
 

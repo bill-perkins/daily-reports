@@ -53,16 +53,17 @@ def analyze(sysname, sysdata):
     # to start, we have three keys: name, uptime, load:
     for sysptr in datedEntries:
         print(sysptr.name)
-        for cmp_key in sysptr.get_keys():
-            entries = sysptr.get_entries(cmp_key)
-            cmpstr = '\'' + cmp_key + '\':'
+        for component in sysptr.get_keys():
+            entries = sysptr.get_entries(component)
+            compstr = '\'' + component + '\':'
             if type(entries) == type([]):
-                print(cmpstr.ljust(14), len(entries), 'entries')
+                print(compstr.ljust(14), len(entries), 'entries')
             else:
-                print(cmpstr, '=', entries)
+                print(compstr, '=', entries)
 
         print()
 
+        # --- uptime entries:
         entries = sysptr.get_entries('uptime')
         print(len(entries), 'uptime entries:')
         for e in entries:
@@ -85,22 +86,176 @@ def analyze(sysname, sysdata):
             uptime = e[1]
             if 'days,' not in uptime and 'day,' not in uptime:
                 reboottime = uptime[0].rstrip(',')
-                parts      = reboottime.split(':')
-                lclhours   = int(parts[0])
-                lclminutes = int(parts[1])
-                ago = timedelta(hours = lclhours, minutes = lclminutes)
+                lclhours, lclminutes = reboottime.split(':')
+                ago = timedelta(hours = int(lclhours), minutes = int(lclminutes))
                 rebootdate = e[0] - ago
                 print ('   ', rebootdate.date(), '- Rebooted @', rebootdate.time())
                 pass
 
+        print()
 
-#        print()
-#        print('load entries:')
-#        entries = sysptr.get_entries('load')
-#        print('len(entries):', len(entries))
-#        for x in entries:
-#            print(x)
-#
+        # --- load entries:
+        entries = sysptr.get_entries('load')
+        print(len(entries), 'load entries:')
+        for e in entries:
+            thisdate = e[0].date()
+            thistime = e[0].time()
+            if thisdate == lastdate:
+                continue
+
+            lastdate = thisdate
+#            print('   ', thisdate, '-', e[1][0])
+
+        print()
+
+        # --- Memory entries:
+        entries = sysptr.get_entries('Mem')
+        print(len(entries), 'Memory entries:')
+        for e in entries:
+            thisdate = e[0].date()
+            thistime = e[0].time()
+            if thisdate == lastdate:
+                continue
+
+            lastdate = thisdate
+            # do something with the data we have
+#            print('   ', thisdate, '-', e[1])
+#            pass
+
+        print()
+
+        # --- Swap entries:
+        entries = sysptr.get_entries('Swap')
+        print(len(entries), 'Swap entries:')
+        for e in entries:
+            thisdate = e[0].date()
+            thistime = e[0].time()
+            if thisdate == lastdate:
+                continue
+
+            lastdate = thisdate
+
+            # do something with the data we have
+#            print('   ', thisdate, '-', e[1])
+
+        print()
+
+        # --- Ping entries:
+        entries = sysptr.get_entries('Ping')
+        print(len(entries), 'Ping entries:')
+        ping_flag = True
+        for e in entries:
+            thisdate = e[0].date()
+            thistime = e[0].time()
+            if thisdate == lastdate:
+                continue
+
+            lastdate = thisdate
+            # do something with the data we have
+            if e[1] != 'OK':
+                print('   ', thisdate, '-', e[1])
+                ping_flag = False
+
+        if ping_flag == True:
+            print('    Ping tests all OK')
+
+        print()
+
+        # --- Services entries:
+        entries = sysptr.get_entries('Services')
+        print(len(entries), 'Service entries:')
+        for e in entries:
+            thisdate = e[0].date()
+            thistime = e[0].time()
+            if thisdate == lastdate:
+                continue
+
+            lastdate = thisdate
+            # do something with the data we have
+            if e[1][0] != 'OK':
+                print('   ', thisdate, '-', e[1][0])
+                if type(e[1]) == type([]):
+                    y = e[1]
+                    for x in y[1:]:
+                        print('-'.rjust(16), x)
+
+                    print()
+
+        # --- Disk entries:
+        entries = sysptr.get_entries('<entry>')
+        if entries != None:
+            print(len(entries), '<entry> entries:')
+            for e in entries:
+                thisdate = e[0].date()
+                thistime = e[0].time()
+                if thisdate == lastdate:
+                    continue
+
+                lastdate = thisdate
+                # do something with the data we have
+
+            print()
+
+        # --- Disk entries:
+        entries = sysptr.get_entries('<entry>')
+        if entries != None:
+            print(len(entries), '<entry> entries:')
+            for e in entries:
+                thisdate = e[0].date()
+                thistime = e[0].time()
+                if thisdate == lastdate:
+                    continue
+
+                lastdate = thisdate
+                # do something with the data we have
+
+            print()
+
+        # --- Disk entries:
+        entries = sysptr.get_entries('<entry>')
+        if entries != None:
+            print(len(entries), '<entry> entries:')
+            for e in entries:
+                thisdate = e[0].date()
+                thistime = e[0].time()
+                if thisdate == lastdate:
+                    continue
+
+                lastdate = thisdate
+                # do something with the data we have
+
+            print()
+
+        # --- Disk entries:
+        entries = sysptr.get_entries('<entry>')
+        if entries != None:
+            print(len(entries), '<entry> entries:')
+            for e in entries:
+                thisdate = e[0].date()
+                thistime = e[0].time()
+                if thisdate == lastdate:
+                    continue
+
+                lastdate = thisdate
+                # do something with the data we have
+
+            print()
+
+        # --- Disk entries:
+        entries = sysptr.get_entries('<entry>')
+        if entries != None:
+            print(len(entries), '<entry> entries:')
+            for e in entries:
+                thisdate = e[0].date()
+                thistime = e[0].time()
+                if thisdate == lastdate:
+                    continue
+
+                lastdate = thisdate
+                # do something with the data we have
+
+            print()
+
         pass
 
     """

@@ -11,6 +11,7 @@ class System:
         get_entries(key)
         get_keys()
         add_usage(key, usage_list)
+        dHumanize(number_string)
     """
     # class variables get shared by all instances:
     # (no class variables here)
@@ -129,6 +130,39 @@ class System:
                 return dptr['entries']
             else:
                 return dptr
+
+    # ------------------------------------------------------------------------
+    # dHumanize(number_string)
+    # ------------------------------------------------------------------------
+    def dHumanize(self, nstr):
+        """
+        """
+
+        if 'K' in nstr:
+            n = float(nstr.rstrip('K'))
+            n *= 1024
+            return n
+
+        if 'M' in nstr:
+            n = float(nstr.rstrip('M'))
+            n *= 1024
+            n *= 1024.0
+            return n
+
+        if 'G' in nstr:
+            n = float(nstr.rstrip('G'))
+            n *= 1024
+            n *= 1024
+            n *= 1024.0
+            return n
+
+        if 'T' in nstr:
+            n = float(nstr.rstrip('T'))
+            n *= 1024
+            n *= 1024
+            n *= 1024
+            n *= 1024.0
+            return n
 
     # ------------------------------------------------------------------------
     # 

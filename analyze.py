@@ -121,8 +121,9 @@ def analyze(sysname, sysdata):
 
             lastdate = thisdate
             # do something with the data we have
-#            print('   ', thisdate, '-', e[1])
-#            pass
+            # like look for changes >20% day to day
+            #print('   ', thisdate, '-', e[1])
+            pass
 
         print()
 
@@ -138,6 +139,7 @@ def analyze(sysname, sysdata):
             lastdate = thisdate
 
             # do something with the data we have
+            # like look for changes >20% day to day
 #            print('   ', thisdate, '-', e[1])
 
         print()
@@ -184,32 +186,17 @@ def analyze(sysname, sysdata):
                     print()
 
         # --- Disk entries:
-        entries = sysptr.get_entries('<entry>')
-        if entries != None:
-            print(len(entries), '<entry> entries:')
-            for e in entries:
-                thisdate = e[0].date()
-                thistime = e[0].time()
-                if thisdate == lastdate:
-                    continue
-
-                lastdate = thisdate
-                # do something with the data we have
-
-            print()
-
-        # --- Disk entries:
-#        keys = sysptr.get_keys()
-#        dsklist = []
-#        disklist = [key for key in keys if '/' in key]
         disklist = sysptr.get_dskkeys()
         print('disklist:', disklist)
+        print()
 
         for disk in disklist:
             lcldisksize = sysptr.get_dsksize(disk)
             entries = sysptr.get_entries(disk)
             if entries != None:
                 print(len(entries), "'{}' entries:".format(disk))
+                lastUsed = 0
+                last_e1 = '0'
                 for e in entries:
                     thisdate = e[0].date()
                     thistime = e[0].time()
@@ -218,13 +205,34 @@ def analyze(sysname, sysdata):
 
                     lastdate = thisdate
                     # do something with the data we have
-                    print('   ', thisdate, '-', e[1], 'used out of', lcldisksize)
+                    #print('   ', thisdate, '-', e[1], 'used out of', lcldisksize)
+                    thisUsed = sysptr.dHumanize(e[1])
+                    diskSize = sysptr.dHumanize(lcldisksize)
+                    if thisUsed != lastUsed:
+                        delta = thisUsed - lastUsed
+                        pct = (delta / diskSize) * 100
+
+                        if pct > 20.0: # current hard-coded variance
+                            print('   ', \
+                                    thisdate, '-', e[1], 'used out of', \
+                                    lcldisksize, f'(+{pct:.1f}%, up from', \
+                                    last_e1 + ')')
+                        elif pct < -20.0:
+                            print('   ', \
+                                    thisdate, '-', e[1], 'used out of', \
+                                    lcldisksize, f'({pct:.1f}%, down from', \
+                                    last_e1 + ')')
+
+                        lastUsed = thisUsed
+                        last_e1  = e[1]
+
+                    # - get min, max, average daily usage
+                    # - scan for changes >20% of current usage
 
                 print()
         print()
 
-
-        """
+        # --- Other entries:
         entries = sysptr.get_entries('<entry>')
         if entries != None:
             print(len(entries), '<entry> entries:')
@@ -239,55 +247,10 @@ def analyze(sysname, sysdata):
 
             print()
 
-        # --- Disk entries:
-        entries = sysptr.get_entries('<entry>')
-        if entries != None:
-            print(len(entries), '<entry> entries:')
-            for e in entries:
-                thisdate = e[0].date()
-                thistime = e[0].time()
-                if thisdate == lastdate:
-                    continue
-
-                lastdate = thisdate
-                # do something with the data we have
-
-            print()
-
-        # --- Disk entries:
-        entries = sysptr.get_entries('<entry>')
-        if entries != None:
-            print(len(entries), '<entry> entries:')
-            for e in entries:
-                thisdate = e[0].date()
-                thistime = e[0].time()
-                if thisdate == lastdate:
-                    continue
-
-                lastdate = thisdate
-                # do something with the data we have
-
-            print()
-
-        # --- Disk entries:
-        entries = sysptr.get_entries('<entry>')
-        if entries != None:
-            print(len(entries), '<entry> entries:')
-            for e in entries:
-                thisdate = e[0].date()
-                thistime = e[0].time()
-                if thisdate == lastdate:
-                    continue
-
-                lastdate = thisdate
-                # do something with the data we have
-
-            print()
-
-        """
         pass
 
     """
+    # Original code:
     entry_dates = sorted(datedEntries)
 
     # analyze each dated entry:

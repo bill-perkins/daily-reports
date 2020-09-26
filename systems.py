@@ -36,6 +36,30 @@ class System:
         self.ip_address = ip_address
 
     # ------------------------------------------------------------------------
+    # get_ip_address()
+    # ------------------------------------------------------------------------
+    def get_ip_address(self):
+        """
+        """
+        return self.ip_address
+
+    # ------------------------------------------------------------------------
+    # set_memsize(size)
+    # ------------------------------------------------------------------------
+    def set_memsize(self, memsize):
+        """ Set the given ip_address to self.
+        """
+        self.memsize = memsize
+
+    # ------------------------------------------------------------------------
+    # get_memsize()
+    # ------------------------------------------------------------------------
+    def get_memsize(self):
+        """
+        """
+        return self.memsize
+
+    # ------------------------------------------------------------------------
     # add_component(component_name, size=None)
     # ------------------------------------------------------------------------
     def add_component(self, component_name, size=None):
@@ -48,6 +72,17 @@ class System:
         else:
             print("    *** attempt to add component '" + component_name + "' to keys.")
             print('    *** (component_name already exists)\n')
+
+    # ------------------------------------------------------------------------
+    # get_component(component_name)
+    # ------------------------------------------------------------------------
+    def get_component(self, component_name):
+        """
+        """
+        if component_name not in self._lcld.keys():
+            print('get_component(): unknown key:', component_name)
+
+        return self._lcld[component_name]
 
     # ------------------------------------------------------------------------
     # add_disk(disk_name, disk_size)
@@ -101,9 +136,6 @@ class System:
         dskeys = []
         keylist = self.get_keys()
         dskeys = [key for key in keylist if '/' in key]
-#        for x in keylist:
-#            if '/' in x:
-#                dskeys.append(x)
 
         return dskeys
 
@@ -130,39 +162,6 @@ class System:
                 return dptr['entries']
             else:
                 return dptr
-
-    # ------------------------------------------------------------------------
-    # dHumanize(number_string)
-    # ------------------------------------------------------------------------
-    def dHumanize(self, nstr):
-        """
-        """
-
-        if 'K' in nstr:
-            n = float(nstr.rstrip('K'))
-            n *= 1024
-            return n
-
-        if 'M' in nstr:
-            n = float(nstr.rstrip('M'))
-            n *= 1024
-            n *= 1024.0
-            return n
-
-        if 'G' in nstr:
-            n = float(nstr.rstrip('G'))
-            n *= 1024
-            n *= 1024
-            n *= 1024.0
-            return n
-
-        if 'T' in nstr:
-            n = float(nstr.rstrip('T'))
-            n *= 1024
-            n *= 1024
-            n *= 1024
-            n *= 1024.0
-            return n
 
     # ------------------------------------------------------------------------
     # 

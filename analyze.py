@@ -7,6 +7,82 @@ from datetime import timedelta
 from analyze_disk import *
 from utils import *
 
+# ------------------------------------------------------------------------
+# dHumanize(number_string)
+# ------------------------------------------------------------------------
+def dHumanize(nstr):
+    """
+    """
+
+    if 'K' in nstr:
+        n = float(nstr.rstrip('K'))
+        n *= 1024
+        return n
+
+    if 'M' in nstr:
+        n = float(nstr.rstrip('M'))
+        n *= 1024
+        n *= 1024.0
+        return n
+
+    if 'G' in nstr:
+        n = float(nstr.rstrip('G'))
+        n *= 1024
+        n *= 1024
+        n *= 1024.0
+        return n
+
+    if 'T' in nstr:
+        n = float(nstr.rstrip('T'))
+        n *= 1024
+        n *= 1024
+        n *= 1024
+        n *= 1024.0
+        return n
+
+    # assume an 'M' was implied:
+    n = float(nstr)
+    return n * 1024 * 1024
+
+# ----------------------------------------------------------------------------
+# chk4variant(size, variance, entries)
+# ----------------------------------------------------------------------------
+def chk4variant(size, variance, entries):
+    """
+    """
+    lastUsed = 0
+    last_e1 = '0'
+    lastdate = date(2019, 1, 2)
+
+    lclSize = dHumanize(size)
+
+    for e in entries:
+        thisdate = e[0].date()
+        thistime = e[0].time()
+        if thisdate == lastdate:
+            continue
+
+        lastdate = thisdate
+        # do something with the data we have
+        #print('   ', thisdate, '-', e[1], 'used out of', lclSize)
+        thisUsed = dHumanize(e[1])
+        if thisUsed != lastUsed:
+            delta = thisUsed - lastUsed
+            pct = (delta / lclSize) * 100
+
+            if pct > variance: # current hard-coded variance
+                print('   ', \
+                        thisdate, '-', e[1], 'used out of', size, \
+                        f'(+{pct:.1f}%, up from', last_e1 + ')')
+            elif pct < -variance:
+                print('   ', \
+                        thisdate, '-', e[1], 'used out of', size, \
+                        f'({pct:.1f}%, down from', last_e1 + ')')
+
+            lastUsed = thisUsed
+            last_e1  = e[1]
+
+
 # ----------------------------------------------------------------------------
 # analyze(sysname, sysdata):
 # ----------------------------------------------------------------------------
@@ -106,48 +182,45 @@ def analyze(sysname, sysdata):
                 continue
 
             lastdate = thisdate
-#            print('   ', thisdate, '-', e[1][0])
+            # do something with the data we have
+            # like look for changes >20% day to day
+            #print('   ', thisdate, '-', e[1])
+            #chk4variant(lcldisksize, 20.0, entries)
 
         print()
 
         # --- Memory entries:
         entries = sysptr.get_entries('Mem')
         print(len(entries), 'Memory entries:')
-        for e in entries:
-            thisdate = e[0].date()
-            thistime = e[0].time()
-            if thisdate == lastdate:
-                continue
-
-            lastdate = thisdate
-            # do something with the data we have
-            # like look for changes >20% day to day
-            #print('   ', thisdate, '-', e[1])
-            pass
+        sp = sysptr.get_component('Mem')
+        chk4variant(sp['size'], 10.0, entries)
 
         print()
 
         # --- Swap entries:
         entries = sysptr.get_entries('Swap')
         print(len(entries), 'Swap entries:')
-        for e in entries:
-            thisdate = e[0].date()
-            thistime = e[0].time()
-            if thisdate == lastdate:
-                continue
+        sp = sysptr.get_component('Swap')
+        chk4variant(sp['size'], 10.0, entries)
 
-            lastdate = thisdate
-
-            # do something with the data we have
-            # like look for changes >20% day to day
-#            print('   ', thisdate, '-', e[1])
+#        for e in entries:
+#            thisdate = e[0].date()
+#            thistime = e[0].time()
+#            if thisdate == lastdate:
+#                continue
+#
+#            lastdate = thisdate
+#
+#            # do something with the data we have
+#            # like look for changes >20% day to day
+#            #print('   ', thisdate, '-', e[1])
 
         print()
 
         # --- Ping entries:
         entries = sysptr.get_entries('Ping')
         print(len(entries), 'Ping entries:')
-        ping_flag = True
+        ping_ok = True
         for e in entries:
             thisdate = e[0].date()
             thistime = e[0].time()
@@ -155,12 +228,13 @@ def analyze(sysname, sysdata):
                 continue
 
             lastdate = thisdate
+
             # do something with the data we have
             if e[1] != 'OK':
                 print('   ', thisdate, '-', e[1])
-                ping_flag = False
+                ping_ok = False
 
-        if ping_flag == True:
+        if ping_ok == True:
             print('    Ping tests all OK')
 
         print()
@@ -175,6 +249,7 @@ def analyze(sysname, sysdata):
                 continue
 
             lastdate = thisdate
+
             # do something with the data we have
             if e[1][0] != 'OK':
                 print('   ', thisdate, '-', e[1][0])
@@ -195,39 +270,11 @@ def analyze(sysname, sysdata):
             entries = sysptr.get_entries(disk)
             if entries != None:
                 print(len(entries), "'{}' entries:".format(disk))
-                lastUsed = 0
-                last_e1 = '0'
-                for e in entries:
-                    thisdate = e[0].date()
-                    thistime = e[0].time()
-                    if thisdate == lastdate:
-                        continue
 
-                    lastdate = thisdate
-                    # do something with the data we have
-                    #print('   ', thisdate, '-', e[1], 'used out of', lcldisksize)
-                    thisUsed = sysptr.dHumanize(e[1])
-                    diskSize = sysptr.dHumanize(lcldisksize)
-                    if thisUsed != lastUsed:
-                        delta = thisUsed - lastUsed
-                        pct = (delta / diskSize) * 100
+                # - scan for changes >20% of current usage
+                chk4variant(lcldisksize, 20.0, entries)
 
-                        if pct > 20.0: # current hard-coded variance
-                            print('   ', \
-                                    thisdate, '-', e[1], 'used out of', \
-                                    lcldisksize, f'(+{pct:.1f}%, up from', \
-                                    last_e1 + ')')
-                        elif pct < -20.0:
-                            print('   ', \
-                                    thisdate, '-', e[1], 'used out of', \
-                                    lcldisksize, f'({pct:.1f}%, down from', \
-                                    last_e1 + ')')
-
-                        lastUsed = thisUsed
-                        last_e1  = e[1]
-
-                    # - get min, max, average daily usage
-                    # - scan for changes >20% of current usage
+                # - get min, max, average daily usage
 
                 print()
         print()

@@ -10,7 +10,7 @@ p3version
 p2version
 prodlogs/
 devlogs/
-archive/
+archive
 *.out
 *.csv
 tryme.py

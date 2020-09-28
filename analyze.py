@@ -4,45 +4,7 @@
 from datetime import date
 from datetime import timedelta
 
-from analyze_disk import *
 from utils import *
-
-# ------------------------------------------------------------------------
-# dHumanize(number_string)
-# ------------------------------------------------------------------------
-def dHumanize(nstr):
-    """
-    """
-
-    if 'K' in nstr:
-        n = float(nstr.rstrip('K'))
-        n *= 1024
-        return n
-
-    if 'M' in nstr:
-        n = float(nstr.rstrip('M'))
-        n *= 1024
-        n *= 1024.0
-        return n
-
-    if 'G' in nstr:
-        n = float(nstr.rstrip('G'))
-        n *= 1024
-        n *= 1024
-        n *= 1024.0
-        return n
-
-    if 'T' in nstr:
-        n = float(nstr.rstrip('T'))
-        n *= 1024
-        n *= 1024
-        n *= 1024
-        n *= 1024.0
-        return n
-
-    # assume an 'M' was implied:
-    n = float(nstr)
-    return n * 1024 * 1024
 
 # ----------------------------------------------------------------------------
 # chk4variant(size, variance, entries)

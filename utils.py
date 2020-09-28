@@ -1,5 +1,6 @@
 # utility functions for this project
 import sys
+
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
@@ -16,10 +17,79 @@ oneday = timedelta(days = 1) # Global timedelta of one day
 def phumanize(f):
     return '{:3.1f}'.format(f) + '%'
 
+# ----------------------------------------------------------------------------
+# getContent(filename)
+# ----------------------------------------------------------------------------
+def getContent(filename):
+    """ Bring the contents of the given input file into a list,
+        and return the list.
+        filename: name of the file we're processing (daily.log)
+        returns:  deque of lines from given filename;
+        sys.exit(1) if file not found or permissions error.
+    """
+
+    logcontent = []
+
+    # open given filename, bring it in as a list:
+    try:
+        with open(filename, 'r') as inpfile:
+            logcontent = inpfile.readlines()
+
+    except FileNotFoundError as err:
+        print('getContent():', str(err))
+        sys.exit(1)
+
+    except PermissionError as err:
+        print('getContent():', str(err))
+        sys.exit(1)
+
+    logcontent.reverse()
+    return logcontent
+
+# ------------------------------------------------------------------------
+# dHumanize(number_string)
+# ------------------------------------------------------------------------
+def dHumanize(nstr):
+    """ Convert a number string with K/M/G/T to a floating-point count
+        of bytes.
+    """
+
+    if 'K' in nstr:
+        n = float(nstr.rstrip('K'))
+        n *= 1024
+        return n
+
+    if 'M' in nstr:
+        n = float(nstr.rstrip('M'))
+        n *= 1024
+        n *= 1024.0
+        return n
+
+    if 'G' in nstr:
+        n = float(nstr.rstrip('G'))
+        n *= 1024
+        n *= 1024
+        n *= 1024.0
+        return n
+
+    if 'T' in nstr:
+        n = float(nstr.rstrip('T'))
+        n *= 1024
+        n *= 1024
+        n *= 1024
+        n *= 1024.0
+        return n
+
+    # assume an 'M' was implied:
+    n = float(nstr)
+    return n * 1024 * 1024
+
 # -----------------------------------------------------------------------------
 # humanize(number)- change number to human-readable format
 # -----------------------------------------------------------------------------
 def humanize(f):
+    """ Change a given float to a human-readable format.
+    """
     if not isinstance(f, int) and not isinstance(f, float):
         return f
 
@@ -37,6 +107,7 @@ def humanize(f):
 
     return '{:3.1f}'.format(f / 1024.0 / 1024 / 1024 / 1024) + "T"
 
+"""
 # ----------------------------------------------------------------------------
 # ms2bytes(s)- change memory/swap values to MB
 # ----------------------------------------------------------------------------
@@ -61,5 +132,6 @@ def to_bytes(s):
         v = float(s)
 
     return v
+"""
 
 # EOF:

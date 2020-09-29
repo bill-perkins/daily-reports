@@ -11,7 +11,6 @@ class System:
         get_entries(key)
         get_keys()
         add_usage(key, usage_list)
-        dHumanize(number_string)
     """
     # class variables get shared by all instances:
     # (no class variables here)

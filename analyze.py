@@ -1,5 +1,7 @@
 # analyze.py
 #
+# this version replaces the original analyze.py and disk_analyze.py
+#
 
 from datetime import date
 from datetime import timedelta
@@ -21,6 +23,8 @@ def printminmaxavg(entries):
     avg_used = mean(values)
     havg = humanize(avg_used)
 
+    print('     started:', humanize(entries[0][1]), 'on', entries[0][0].date())
+    print('   currently:', humanize(entries[-1][1]), 'on', entries[-1][0].date())
     print('    min used:', humanize(min_used), 'on', min_used_entry[0].date())
     print('    max used:', humanize(max_used), 'on', max_used_entry[0].date())
     print('    avg used:', havg)

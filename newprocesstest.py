@@ -16,7 +16,7 @@ import os
 iam = sys.argv[0]           # Global program name
 outname = ''                # Global output name
 
-import lclvars
+#import lclvars
 from newprocess import *
 from analyze import *
 
@@ -24,9 +24,9 @@ from analyze import *
 # usage()
 # ----------------------------------------------------------------------------
 def usage():
-    print(iam + ': usage:', iam, '[-c <disklog.csv>] [-?] [list of logfiles]')
-    print('    -c for a nice .csv disk report.')
-    print('    default logfile to process is daily.log.')
+    print('Usage:', iam, '[-? | -h | --help] list_of_logfiles')
+    print('list_of_logfiles defaults to daily.log.')
+    print()
 
 # ----------------------------------------------------------------------------
 # main() part of the program
@@ -41,19 +41,6 @@ if __name__ == '__main__':
         if sys.argv[0] == '-?' or sys.argv[0] == '-h' or sys.argv[0] == '--help':
             usage()
             sys.exit(0)
-
-        # do they want a disk report?
-        if sys.argv[0] == '-c':
-            sys.argv.pop(0)
-
-            # sanity check:
-            if len(sys.argv) == 0:
-                usage();
-                sys.exit(1)
-
-            # create .csv output file:
-            outname = sys.argv.pop(0)
-            lclvars.outfile = open(outname, "w")
 
         # do we have any args left?
         if len(sys.argv) > 0:
@@ -93,10 +80,6 @@ if __name__ == '__main__':
             analyze(sysname, allSystems)
 
         print()
-
-    # close the output file if we had one:
-    if lclvars.outfile != None:
-        lclvars.outfile.close()
 
 ##------------------------------------------------------------------------------
 ## pretty-print the resulting dictionary:

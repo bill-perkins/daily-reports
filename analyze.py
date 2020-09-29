@@ -135,7 +135,6 @@ def analyze(sysname, sysdata):
 
         # --- uptime entries:
         entries = sysptr.get_entries('uptime')
-#        print(len(entries), 'uptime entries:')
         print('Uptime entries:')
         for e in entries:
             thisdate = e[0].date()

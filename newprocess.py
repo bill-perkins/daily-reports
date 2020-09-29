@@ -102,9 +102,9 @@ def gather_data(lines):
         if line.startswith('Mem:'):
             parts = line.split()
             if 'Mem' not in syskeys:
-                sysobj.add_component('Mem', parts[1])
+                sysobj.add_component('Mem', dHumanize(parts[1]))
 
-            sysobj.add_usage('Mem', [dtobj, parts[2]])
+            sysobj.add_usage('Mem', [dtobj, dHumanize(parts[2])])
             # finished here:
             continue
 
@@ -112,9 +112,9 @@ def gather_data(lines):
         if line.startswith('Swap'):
             parts = line.split()
             if 'Swap' not in syskeys:
-                sysobj.add_component('Swap', parts[1])
+                sysobj.add_component('Swap', dHumanize(parts[1]))
 
-            sysobj.add_usage('Swap', [dtobj, parts[2]])
+            sysobj.add_usage('Swap', [dtobj, dHumanize(parts[2])])
             # finished here:
             continue
 
@@ -124,9 +124,9 @@ def gather_data(lines):
             while len(line) > 1 and not line.startswith('----'):
                 parts = line.split() # parts[1] is disk size, parts[5] is mount point
                 if parts[5] not in syskeys:
-                    sysobj.add_disk(parts[5], parts[1])
+                    sysobj.add_disk(parts[5], dHumanize(parts[1]))
 
-                sysobj.add_usage(parts[5], [dtobj, parts[2]]) # parts[2] is usage
+                sysobj.add_usage(parts[5], [dtobj, dHumanize(parts[2])]) # parts[2] is usage
                 line = lines.pop()
 
             # finished here:

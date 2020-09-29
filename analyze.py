@@ -7,7 +7,7 @@ from datetime import date
 from datetime import timedelta
 from statistics import mean
 
-from utils import humanize
+from utils import humanize, oneday
 
 # ----------------------------------------------------------------------------
 # printminmaxavg(entries)

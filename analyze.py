@@ -3,8 +3,28 @@
 
 from datetime import date
 from datetime import timedelta
+from statistics import mean
 
 from utils import *
+
+# ----------------------------------------------------------------------------
+# printminmaxavg(entries)
+# ----------------------------------------------------------------------------
+def printminmaxavg(entries):
+    """
+    """
+    values   = [int(e[1]) for e in entries]
+    min_used = min(values)
+    max_used = max(values)
+    max_used_entry = entries[values.index(max_used)]
+    min_used_entry = entries[values.index(min_used)]
+    avg_used = mean(values)
+    havg = humanize(avg_used)
+
+    print('    min used:', humanize(min_used), 'on', min_used_entry[0].date())
+    print('    max used:', humanize(max_used), 'on', max_used_entry[0].date())
+    print('    avg used:', havg)
+    pass
 
 # ----------------------------------------------------------------------------
 # chk4variant(size, variance, entries)
@@ -16,7 +36,7 @@ def chk4variant(size, variance, entries):
     last_e1 = '0'
     lastdate = date(2019, 1, 2)
 
-    lclSize = dHumanize(size)
+    lclSize = size
 
     for e in entries:
         thisdate = e[0].date()
@@ -27,19 +47,19 @@ def chk4variant(size, variance, entries):
         lastdate = thisdate
         # do something with the data we have
         #print('   ', thisdate, '-', e[1], 'used out of', lclSize)
-        thisUsed = dHumanize(e[1])
+        thisUsed = e[1]
         if thisUsed != lastUsed:
             delta = thisUsed - lastUsed
             pct = (delta / lclSize) * 100
 
             if pct > variance: # current hard-coded variance
                 print('   ', \
-                        thisdate, '-', e[1], 'used out of', size, \
-                        f'(+{pct:.1f}%, up from', last_e1 + ')')
+                        thisdate, '-', humanize(e[1]), 'used out of', humanize(size), \
+                        f'(+{pct:.1f}%, up from', humanize(last_e1) + ')')
             elif pct < -variance:
                 print('   ', \
-                        thisdate, '-', e[1], 'used out of', size, \
-                        f'({pct:.1f}%, down from', last_e1 + ')')
+                        thisdate, '-', humanize(e[1]), 'used out of', humanize(size), \
+                        f'({pct:.1f}%, down from', humanize(last_e1) + ')')
 
             lastUsed = thisUsed
             last_e1  = e[1]
@@ -111,7 +131,8 @@ def analyze(sysname, sysdata):
 
         # --- uptime entries:
         entries = sysptr.get_entries('uptime')
-        print(len(entries), 'uptime entries:')
+#        print(len(entries), 'uptime entries:')
+        print('Uptime entries:')
         for e in entries:
             thisdate = e[0].date()
             thistime = e[0].time()
@@ -144,30 +165,31 @@ def analyze(sysname, sysdata):
 
         # --- load entries:
         entries = sysptr.get_entries('load')
-        print(len(entries), 'Load entries:')
+        print('Load entries:')
         sp = sysptr.get_component('load')
         analyze_load(5.0, sp['entries'])
         print()
 
         # --- Memory entries:
         entries = sysptr.get_entries('Mem')
-        print(len(entries), 'Memory entries:')
+        print('Memory entries:')
         sp = sysptr.get_component('Mem')
         chk4variant(sp['size'], 10.0, entries)
-
+        printminmaxavg(entries)
         print()
 
         # --- Swap entries:
         entries = sysptr.get_entries('Swap')
-        print(len(entries), 'Swap entries:')
+        print('Swap entries:')
         sp = sysptr.get_component('Swap')
         chk4variant(sp['size'], 10.0, entries)
+        printminmaxavg(entries)
 
         print()
 
         # --- Ping entries:
         entries = sysptr.get_entries('Ping')
-        print(len(entries), 'Ping entries:')
+        print('Ping entries:')
         ping_ok = True
         for e in entries:
             thisdate = e[0].date()
@@ -189,7 +211,7 @@ def analyze(sysname, sysdata):
 
         # --- Services entries:
         entries = sysptr.get_entries('Services')
-        print(len(entries), 'Service entries:')
+        print('Service entries:')
         for e in entries:
             thisdate = e[0].date()
             thistime = e[0].time()
@@ -204,33 +226,35 @@ def analyze(sysname, sysdata):
                 if type(e[1]) == type([]):
                     y = e[1]
                     for x in y[1:]:
-                        print('-'.rjust(16), x)
+                        print(''.rjust(16), x)
+                print()
 
         print()
 
         # --- Disk entries:
         disklist = sysptr.get_dskkeys()
-        print('disklist:', disklist)
+        print('Filesystems:', disklist)
         print()
 
         for disk in disklist:
             lcldisksize = sysptr.get_dsksize(disk)
             entries = sysptr.get_entries(disk)
             if entries != None:
-                print(len(entries), "'{}' entries:".format(disk))
+                print("'{}' entries:".format(disk))
 
                 # - scan for changes >20% of current usage
                 chk4variant(lcldisksize, 20.0, entries)
+                print()
 
                 # - get min, max, average daily usage
-
+                printminmaxavg(entries)
                 print()
         print()
 
         # --- Other entries:
         entries = sysptr.get_entries('<entry>')
         if entries != None:
-            print(len(entries), '<entry> entries:')
+            print('<entry> entries:')
             for e in entries:
                 thisdate = e[0].date()
                 thistime = e[0].time()

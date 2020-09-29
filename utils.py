@@ -11,12 +11,6 @@ starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
 
 oneday = timedelta(days = 1) # Global timedelta of one day
 
-# -----------------------------------------------------------------------------
-# phumanize(number)- change number to human-readable % format
-# -----------------------------------------------------------------------------
-def phumanize(f):
-    return '{:3.1f}'.format(f) + '%'
-
 # ----------------------------------------------------------------------------
 # getContent(filename)
 # ----------------------------------------------------------------------------
@@ -46,44 +40,6 @@ def getContent(filename):
     logcontent.reverse()
     return logcontent
 
-# ------------------------------------------------------------------------
-# dHumanize(number_string)
-# ------------------------------------------------------------------------
-def dHumanize(nstr):
-    """ Convert a number string with K/M/G/T to a floating-point count
-        of bytes.
-    """
-
-    if 'K' in nstr:
-        n = float(nstr.rstrip('K'))
-        n *= 1024
-        return n
-
-    if 'M' in nstr:
-        n = float(nstr.rstrip('M'))
-        n *= 1024
-        n *= 1024.0
-        return n
-
-    if 'G' in nstr:
-        n = float(nstr.rstrip('G'))
-        n *= 1024
-        n *= 1024
-        n *= 1024.0
-        return n
-
-    if 'T' in nstr:
-        n = float(nstr.rstrip('T'))
-        n *= 1024
-        n *= 1024
-        n *= 1024
-        n *= 1024.0
-        return n
-
-    # assume an 'M' was implied:
-    n = float(nstr)
-    return n * 1024 * 1024
-
 # -----------------------------------------------------------------------------
 # humanize(number)- change number to human-readable format
 # -----------------------------------------------------------------------------
@@ -107,31 +63,32 @@ def humanize(f):
 
     return '{:3.1f}'.format(f / 1024.0 / 1024 / 1024 / 1024) + "T"
 
-"""
-# ----------------------------------------------------------------------------
-# ms2bytes(s)- change memory/swap values to MB
-# ----------------------------------------------------------------------------
-def ms2bytes(s):
-    return float(s) * 1024 * 1024
+# ------------------------------------------------------------------------
+# dHumanize(number_string)
+# ------------------------------------------------------------------------
+def dHumanize(nstr):
+    """ Convert a number string with K/M/G/T to a floating-point count
+        of bytes.
+    """
 
-# ----------------------------------------------------------------------------
-# to_bytes()- change strings with 'G', 'M', 'K', '%' to appropriate numbers
-# ----------------------------------------------------------------------------
-def to_bytes(s):
-    if 'T' in s:
-        v = float(s[:-1]) * 1024 * 1024 * 1024 * 1024
-    elif 'G' in s:
-        v = float(s[:-1]) * 1024 * 1024 * 1024
-    elif 'M' in s:
-        v = float(s[:-1]) * 1024 * 1024
-    elif 'K' in s:
-        v = float(s[:-1]) * 1024
-    elif '%' in s:
-        v = float(s[:-1])
-    else:
-        v = float(s)
+    if 'K' in nstr:
+        n = float(nstr.rstrip('K'))
+        return n * 1024
 
-    return v
-"""
+    if 'M' in nstr:
+        n = float(nstr.rstrip('M'))
+        return n * 1024 * 1024.0
+
+    if 'G' in nstr:
+        n = float(nstr.rstrip('G'))
+        return n * 1024 * 1024 * 1024.0
+
+    if 'T' in nstr:
+        n = float(nstr.rstrip('T'))
+        return n * 1024 * 1024 * 1024 * 1024.0
+
+    # assume an 'M' was implied:
+    n = float(nstr)
+    return n * 1024 * 1024
 
 # EOF:

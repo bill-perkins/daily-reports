@@ -7,9 +7,7 @@
 # this one replaces the original process.py and parseentry.py
 
 import sys
-#import lclvars
 from utils import *
-#from parseentry import *
 from systems import System
 from datetime import datetime
 
@@ -137,9 +135,6 @@ def gather_data(lines):
             line = lines.pop()
             parts = line.split()
             sysobj.set_ip_address(parts[1])
-            # eat the rest of the lines:
-#            while len(line) > 0:
-#                line = line.pop()
 
             # finished here:
             continue

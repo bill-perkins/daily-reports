@@ -16,7 +16,6 @@ import os
 iam = sys.argv[0]           # Global program name
 outname = ''                # Global output name
 
-#import lclvars
 from newprocess import *
 from analyze import *
 

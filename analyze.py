@@ -13,7 +13,7 @@ from utils import humanize, oneday
 # printminmaxavg(entries)
 # ----------------------------------------------------------------------------
 def printminmaxavg(entries):
-    """
+    """ Print the minimum, maximum, average, starting usage, and ending usage
     """
     values   = [int(e[1]) for e in entries]
     min_used = min(values)
@@ -34,7 +34,8 @@ def printminmaxavg(entries):
 # chk4variant(size, variance, entries)
 # ----------------------------------------------------------------------------
 def chk4variant(size, variance, entries):
-    """
+    """ Print any usage entry that goes outside of
+        the given day-to-day variance.
     """
     lastUsed = 0
     last_e1 = '0'
@@ -73,7 +74,7 @@ def chk4variant(size, variance, entries):
 # analyze_load(variance, entries):
 # ----------------------------------------------------------------------------
 def analyze_load(variance, entries):
-    """
+    """ Print out any major changes in usage entries
     """
     lastUsed = 0
     lastdate = date(2019, 1, 2)
@@ -97,9 +98,7 @@ def analyze_load(variance, entries):
 # analyze(sysname, sysdata):
 # ----------------------------------------------------------------------------
 def analyze(sysname, sysdata):
-    """ Look for changing immutable values.
-        Immutable values are set by the first log entry processed.
-        input: sysdata is a dictionary of sysname: datedEntries
+    """ Look for changing or entries and print them
     """
 
     global oneday

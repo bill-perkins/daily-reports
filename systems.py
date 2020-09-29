@@ -38,7 +38,7 @@ class System:
     # get_ip_address()
     # ------------------------------------------------------------------------
     def get_ip_address(self):
-        """
+        """ Retrieve the IP address for this system object.
         """
         return self.ip_address
 
@@ -54,7 +54,7 @@ class System:
     # get_memsize()
     # ------------------------------------------------------------------------
     def get_memsize(self):
-        """
+        """ Retrieve the size of the system memory.
         """
         return self.memsize
 
@@ -76,7 +76,7 @@ class System:
     # get_component(component_name)
     # ------------------------------------------------------------------------
     def get_component(self, component_name):
-        """
+        """ Retrieve the local dictionary value for the given component.
         """
         if component_name not in self._lcld.keys():
             print('get_component(): unknown key:', component_name)

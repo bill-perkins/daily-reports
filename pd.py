@@ -16,7 +16,7 @@ import os
 iam = sys.argv[0]           # Global program name
 outname = ''                # Global output name
 
-from newprocess import *
+from process import *
 from analyze import *
 
 # ----------------------------------------------------------------------------

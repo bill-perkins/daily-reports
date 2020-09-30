@@ -145,7 +145,11 @@ def gather_data(lines):
                 sysobj.add_component('Ping')
 
             parts = line.split()
-            sysobj.add_usage('Ping', [dtobj, parts[2]])
+            if len(parts) > 2:
+                sysobj.add_usage('Ping', [dtobj, parts[2]])
+            else:
+                outlist = lines.pop()
+                sysobj.add_usage('Ping', [dtobj, outlist])
 
             # finished here:
             continue
@@ -156,20 +160,47 @@ def gather_data(lines):
                 sysobj.add_component('Services')
 
             parts = line.split()
-            if parts[2] == 'OK':
-                sysobj.add_usage('Services', [dtobj, parts[2:]])
-                continue
+            if len(parts) > 2:
+                if parts[2] == 'OK':
+                    sysobj.add_usage('Services', [dtobj, parts[2:]])
+                    continue
 
-            outlist = ['Some services were DOWN:']
-            newline = lines.pop()
-            while len(newline) > 1:
-                parts = newline.split()
-                outlist.append(parts[0])
+                outlist = ['Some services were DOWN:']
                 newline = lines.pop()
+                while len(newline) > 1:
+                    parts = newline.split()
+                    outlist.append(parts[0])
+                    newline = lines.pop()
 
-            # finished here:
-            sysobj.add_usage('Services', [dtobj, outlist])
+                # finished here:
+                sysobj.add_usage('Services', [dtobj, outlist])
+
+            # ----------------------------------------
+            # --- special Denodo daily log processing:
+            # ----------------------------------------
+            else:
+                outlist = ['Denodo service check:']
+                newline = lines.pop().rstrip()
+                while len(newline) > 1:
+                    outlist.append(newline)
+                    newline = lines.pop().rstrip()
+
+                svc_ok = True
+                for x in outlist:
+                    if 'OK' in x:
+                        pass
+                    if 'is running' in x:
+                        pass
+                    if 'is not running' in x:
+                        svc_ok = False
+                        pass
+
+                # finished here:
+                if svc_ok != True:
+                    sysobj.add_usage('Services', [dtobj, outlist])
+
             continue
+
 
         # NOTE: parse and process other lines here
         else:

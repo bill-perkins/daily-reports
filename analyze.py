@@ -8,6 +8,7 @@ from datetime import timedelta
 from statistics import mean
 
 from utils import humanize, oneday
+a_list = []     # final output list
 
 # ----------------------------------------------------------------------------
 # printminmaxavg(entries)
@@ -22,18 +23,17 @@ def printminmaxavg(entries):
     min_used_entry = entries[values.index(min_used)]
     avg_used = mean(values)
     havg = humanize(avg_used)
-
+#    print()
     print('     started:', humanize(entries[0][1]), 'on', entries[0][0].date())
     print('   currently:', humanize(entries[-1][1]), 'on', entries[-1][0].date())
     print('    min used:', humanize(min_used), 'on', min_used_entry[0].date())
     print('    max used:', humanize(max_used), 'on', max_used_entry[0].date())
     print('    avg used:', havg)
-    pass
 
 # ----------------------------------------------------------------------------
 # chk4variant(size, variance, entries)
 # ----------------------------------------------------------------------------
-def chk4variant(size, variance, entries):
+def chk4variant(size, variance, entries, name=''):
     """ Print any usage entry that goes outside of
         the given day-to-day variance.
     """
@@ -42,6 +42,9 @@ def chk4variant(size, variance, entries):
     lastdate = date(2019, 1, 2)
 
     lclSize = size
+
+    if name != '':
+        name = ' on ' + name
 
     for e in entries:
         thisdate = e[0].date()
@@ -58,13 +61,13 @@ def chk4variant(size, variance, entries):
             pct = (delta / lclSize) * 100
 
             if pct > variance: # current hard-coded variance
-                print('   ', \
-                        thisdate, '-', humanize(e[1]), 'used out of', humanize(size), \
-                        f'(+{pct:.1f}%, up from', humanize(last_e1) + ')')
+                a_list.append(str(thisdate) + ' - ' + humanize(e[1]) + \
+                        ' used out of ' + humanize(size) + name + \
+                        f' (+{pct:.1f}%, up from ' + humanize(last_e1) + ')')
             elif pct < -variance:
-                print('   ', \
-                        thisdate, '-', humanize(e[1]), 'used out of', humanize(size), \
-                        f'({pct:.1f}%, down from', humanize(last_e1) + ')')
+                a_list.append(str(thisdate) + ' - ' + humanize(e[1]) + \
+                        ' used out of ' + humanize(size) + name + \
+                        f' ({pct:.1f}%, down from ' + humanize(last_e1) + ')')
 
             lastUsed = thisUsed
             last_e1  = e[1]
@@ -90,7 +93,8 @@ def analyze_load(variance, entries):
         thisUsed = float(e[1][0])
         if thisUsed != lastUsed:
             if thisUsed > variance:
-                print('   ', thisdate, '- usage:', thisUsed)
+#                print('   ', thisdate, '- usage:', thisUsed)
+                a_list.append(str(thisdate) + ' - usage: ' + humanize(thisUsed))
 
             lastUsed = thisUsed
 
@@ -101,7 +105,9 @@ def analyze(sysname, sysdata):
     """ Look for changing or entries and print them
     """
 
-    global oneday
+    global oneday   # find in utils.py
+    global a_list   # final output list
+
     variance = 19.9
 # project started 2020-01-03:
 #    nexttime = date(2020,1,3)
@@ -121,16 +127,6 @@ def analyze(sysname, sysdata):
     # --- here we have something completely different:
     # to start, we have three keys: name, uptime, load:
     for sysptr in datedEntries:
-        print(sysptr.name)
-        for component in sysptr.get_keys():
-            entries = sysptr.get_entries(component)
-            compstr = '\'' + component + '\':'
-            if type(entries) == type([]):
-                print(compstr.ljust(14), len(entries), 'entries')
-            else:
-                print(compstr, '=', entries)
-
-        print()
 
         # --- uptime entries:
         entries = sysptr.get_entries('uptime')
@@ -145,10 +141,11 @@ def analyze(sysname, sysdata):
 
             if thisdate != nextdate:
                 if nextdate != date(2019,1,2):
-                    print('   ', thisdate, '- unexpected datestamp, expected:', nextdate)
+                    a_list.append(str(thisdate) + ' - unexpected datestamp, expected: ' + str(nextdate))
                 else:
                     nextdate = thisdate
                     print('   ', thisdate, '- Logging starts')
+                    a_list.append(str(thisdate) + ' - Logging starts')
 
             nextdate = thisdate + oneday
 
@@ -165,7 +162,7 @@ def analyze(sysname, sysdata):
 
                 ago = timedelta(hours = int(lclhours), minutes = int(lclminutes))
                 rebootdate = e[0] - ago
-                print ('   ', rebootdate.date(), '- Rebooted @', rebootdate.time())
+                a_list.append (str(rebootdate.date()) + ' - Rebooted @ ' + str(rebootdate.time()))
                 pass
 
         print()
@@ -181,7 +178,7 @@ def analyze(sysname, sysdata):
         entries = sysptr.get_entries('Mem')
         print('Memory entries:')
         sp = sysptr.get_component('Mem')
-        chk4variant(sp['size'], 10.0, entries)
+        chk4variant(sp['size'], 10.0, entries, 'Mem')
         printminmaxavg(entries)
         print()
 
@@ -189,7 +186,7 @@ def analyze(sysname, sysdata):
         entries = sysptr.get_entries('Swap')
         print('Swap entries:')
         sp = sysptr.get_component('Swap')
-        chk4variant(sp['size'], 10.0, entries)
+        chk4variant(sp['size'], 10.0, entries, 'Swap')
         printminmaxavg(entries)
 
         print()
@@ -209,6 +206,7 @@ def analyze(sysname, sysdata):
             # do something with the data we have
             if e[1] != 'OK':
                 print('   ', thisdate, '-', e[1])
+                a_list.append(str(thisdate) + ' - ' + e[1])
                 ping_ok = False
 
         if ping_ok == True:
@@ -218,7 +216,6 @@ def analyze(sysname, sysdata):
 
         # --- Services entries:
         entries = sysptr.get_entries('Services')
-        print('Service entries:')
         for e in entries:
             thisdate = e[0].date()
             thistime = e[0].time()
@@ -229,14 +226,12 @@ def analyze(sysname, sysdata):
 
             # do something with the data we have
             if e[1][0] != 'OK':
-                print('   ', thisdate, '-', e[1][0])
+                tmpstr = str(thisdate) + ' - ' + e[1][0] + '\n'
                 if type(e[1]) == type([]):
                     y = e[1]
                     for x in y[1:]:
-                        print(''.rjust(16), x)
-                print()
-
-        print()
+                        tmpstr += '             ' + x + '\n'
+                a_list.append(tmpstr)
 
         # --- Disk entries:
         disklist = sysptr.get_dskkeys()
@@ -247,16 +242,15 @@ def analyze(sysname, sysdata):
             lcldisksize = sysptr.get_dsksize(disk)
             entries = sysptr.get_entries(disk)
             if entries != None:
-                print("'{}' entries:".format(disk))
+                print("'{}' analysis:".format(disk))
 
                 # - scan for changes >20% of current usage
-                chk4variant(lcldisksize, 20.0, entries)
-                print()
+                chk4variant(lcldisksize, 20.0, entries, disk)
 
                 # - get min, max, average daily usage
                 printminmaxavg(entries)
+
                 print()
-        print()
 
         # --- Other entries:
         entries = sysptr.get_entries('<entry>')
@@ -273,6 +267,13 @@ def analyze(sysname, sysdata):
 
             print()
 
-        pass
+    a_list.sort()
+    print('Events:')
+    print()
+    for x in a_list:
+        print(x)
+    print()
+
+    pass
 
 # EOF:

@@ -157,7 +157,12 @@ def analyze(sysname, sysdata):
                 # means that we rebooted less than a day ago,
                 # so see if we can figure out when we did reboot:
                 reboottime = uptime[0].rstrip(',')
-                lclhours, lclminutes = reboottime.split(':')
+                if 'min,' not in uptime:
+                    lclhours, lclminutes = reboottime.split(':')
+                else:
+                    lclhours = '0';
+                    lclminutes = uptime[0]
+
                 ago = timedelta(hours = int(lclhours), minutes = int(lclminutes))
                 rebootdate = e[0] - ago
                 print ('   ', rebootdate.date(), '- Rebooted @', rebootdate.time())

@@ -93,22 +93,29 @@ def analyze_load(variance, entries):
         thisUsed = float(e[1][0])
         if thisUsed != lastUsed:
             if thisUsed > variance:
-#                print('   ', thisdate, '- usage:', thisUsed)
                 a_list.append(str(thisdate) + ' - usage: ' + humanize(thisUsed))
 
             lastUsed = thisUsed
 
 # ----------------------------------------------------------------------------
-# analyze(sysname, sysdata):
+# analyze(sysname, sysdata, switches):
 # ----------------------------------------------------------------------------
-def analyze(sysname, sysdata):
-    """ Look for changing or entries and print them
+def analyze(sysname, sysdata, switches):
+    """ Look for entries to print
+        switches is currently a tuple:
+        switches[0] = show_events
+        switches[1] = show_disk
+        switches[2] = show_mem
+        switches[3] = show_ping
+        switches[4] = show_load
     """
 
     global oneday   # find in utils.py
     global a_list   # final output list
 
+    a_list = []     # reset
     variance = 19.9
+
 # project started 2020-01-03:
 #    nexttime = date(2020,1,3)
     nextdate = date(2019, 1, 2)
@@ -130,7 +137,6 @@ def analyze(sysname, sysdata):
 
         # --- uptime entries:
         entries = sysptr.get_entries('uptime')
-        print('Uptime entries:')
         for e in entries:
             thisdate = e[0].date()
             thistime = e[0].time()
@@ -144,8 +150,6 @@ def analyze(sysname, sysdata):
                     a_list.append(str(thisdate) + ' - unexpected datestamp, expected: ' + str(nextdate))
                 else:
                     nextdate = thisdate
-                    print('   ', thisdate, '- Logging starts')
-                    a_list.append(str(thisdate) + ' - Logging starts')
 
             nextdate = thisdate + oneday
 
@@ -165,54 +169,57 @@ def analyze(sysname, sysdata):
                 a_list.append (str(rebootdate.date()) + ' - Rebooted @ ' + str(rebootdate.time()))
                 pass
 
-        print()
+#        print()
 
         # --- load entries:
         entries = sysptr.get_entries('load')
-        print('Load entries:')
-        sp = sysptr.get_component('load')
-        analyze_load(5.0, sp['entries'])
-        print()
+        if switches[4] == True:
+            print('Load entries:')
+            sp = sysptr.get_component('load')
+            analyze_load(5.0, sp['entries'])
+            print()
 
         # --- Memory entries:
         entries = sysptr.get_entries('Mem')
-        print('Memory entries:')
         sp = sysptr.get_component('Mem')
         chk4variant(sp['size'], 10.0, entries, 'Mem')
-        printminmaxavg(entries)
-        print()
+        if switches[2] == True:
+            print('Memory entries:')
+            printminmaxavg(entries)
+            print()
 
         # --- Swap entries:
         entries = sysptr.get_entries('Swap')
-        print('Swap entries:')
         sp = sysptr.get_component('Swap')
         chk4variant(sp['size'], 10.0, entries, 'Swap')
-        printminmaxavg(entries)
-
-        print()
+        if switches[2] == True:
+            print('Swap entries:')
+            printminmaxavg(entries)
+            print()
 
         # --- Ping entries:
-        entries = sysptr.get_entries('Ping')
-        print('Ping entries:')
-        ping_ok = True
-        for e in entries:
-            thisdate = e[0].date()
-            thistime = e[0].time()
-            if thisdate == lastdate:
-                continue
+        if switches[3] == True:
+            entries = sysptr.get_entries('Ping')
+            print('Ping entries:')
+            ping_ok = True
+            for e in entries:
+                thisdate = e[0].date()
+                thistime = e[0].time()
+                if thisdate == lastdate:
+                    continue
 
-            lastdate = thisdate
+                lastdate = thisdate
 
-            # do something with the data we have
-            if e[1] != 'OK':
-                print('   ', thisdate, '-', e[1])
-                a_list.append(str(thisdate) + ' - ' + e[1])
-                ping_ok = False
+                # do something with the data we have
+                if e[1] != 'OK':
+                    print('   ', thisdate, '-', e[1])
+                    a_list.append(str(thisdate) + ' - ' + e[1])
+                    ping_ok = False
 
-        if ping_ok == True:
-            print('    Ping tests all OK')
+            if ping_ok == True:
+                print('    Ping tests all OK')
 
-        print()
+            print()
 
         # --- Services entries:
         entries = sysptr.get_entries('Services')
@@ -235,22 +242,19 @@ def analyze(sysname, sysdata):
 
         # --- Disk entries:
         disklist = sysptr.get_dskkeys()
-        print('Filesystems:', disklist)
-        print()
-
         for disk in disklist:
             lcldisksize = sysptr.get_dsksize(disk)
             entries = sysptr.get_entries(disk)
             if entries != None:
-                print("'{}' analysis:".format(disk))
 
                 # - scan for changes >20% of current usage
                 chk4variant(lcldisksize, 20.0, entries, disk)
 
                 # - get min, max, average daily usage
-                printminmaxavg(entries)
-
-                print()
+                if switches[1] == True:
+                    print("'{}' analysis:".format(disk))
+                    printminmaxavg(entries)
+                    print()
 
         # --- Other entries:
         entries = sysptr.get_entries('<entry>')
@@ -268,11 +272,13 @@ def analyze(sysname, sysdata):
             print()
 
     a_list.sort()
-    print('Events:')
-    print()
-    for x in a_list:
-        print(x)
-    print()
+    if switches[0] == True:
+        print('Events:')
+        print()
+        print(a_list[0][:13] + 'Logging starts')
+        for x in a_list:
+            print(x)
+        print()
 
     pass
 

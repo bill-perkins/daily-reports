@@ -8,7 +8,7 @@ from datetime import timedelta
 from statistics import mean
 
 from utils import humanize, oneday
-a_list = []     # final output list
+event_list = []     # final output list
 
 # ----------------------------------------------------------------------------
 # printminmaxavg(entries)
@@ -61,11 +61,11 @@ def chk4variant(size, variance, entries, name=''):
             pct = (delta / lclSize) * 100
 
             if pct > variance: # current hard-coded variance
-                a_list.append(str(thisdate) + ' - ' + humanize(e[1]) + \
+                event_list.append(str(thisdate) + ' - ' + humanize(e[1]) + \
                         ' used out of ' + humanize(size) + name + \
                         f' (+{pct:.1f}%, up from ' + humanize(last_e1) + ')')
             elif pct < -variance:
-                a_list.append(str(thisdate) + ' - ' + humanize(e[1]) + \
+                event_list.append(str(thisdate) + ' - ' + humanize(e[1]) + \
                         ' used out of ' + humanize(size) + name + \
                         f' ({pct:.1f}%, down from ' + humanize(last_e1) + ')')
 
@@ -89,11 +89,12 @@ def analyze_load(variance, entries):
             continue
 
         lastdate = thisdate
-        # do something with the data we have
+
+        # do something with the data we have:
         thisUsed = float(e[1][0])
         if thisUsed != lastUsed:
             if thisUsed > variance:
-                a_list.append(str(thisdate) + ' - usage: ' + humanize(thisUsed))
+                event_list.append(str(thisdate) + ' - usage: ' + humanize(thisUsed))
 
             lastUsed = thisUsed
 
@@ -102,19 +103,21 @@ def analyze_load(variance, entries):
 # ----------------------------------------------------------------------------
 def analyze(sysname, sysdata, switches):
     """ Look for entries to print
-        switches is currently a tuple:
-        switches[0] = show_events
-        switches[1] = show_disk
-        switches[2] = show_mem
-        switches[3] = show_ping
-        switches[4] = show_load
+        sysname  is a string of the system we're investigating
+        sysdata  is a dictionary, with sysname as the key
+        switches is a tuple of Booleans:
+            switches[0] = show_events
+            switches[1] = show_disk
+            switches[2] = show_mem
+            switches[3] = show_ping
+            switches[4] = show_load
     """
 
     global oneday   # find in utils.py
-    global a_list   # final output list
+    global event_list   # final output list
 
-    a_list = []     # reset
-    variance = 19.9
+    event_list = []     # start fresh
+    variance = 19.9 # default variance
 
 # project started 2020-01-03:
 #    nexttime = date(2020,1,3)
@@ -122,18 +125,21 @@ def analyze(sysname, sysdata, switches):
     lastdate = date(2019, 1, 2)
     thisdate = date(2019, 1, 3)
 
+    if sysname not in sysdata.keys():
+        print('analyze(): system', sysname, 'not in sysdata dictionary.')
+        return
+
     datedEntries = sysdata[sysname]
     if len(datedEntries) == 0:
-        print('no entries for', sysname)
+        print('analyze(): no entries for', sysname)
         return
 
     print('# ----------------------------------------------------------------------------')
     print('Analyzing system', sysname + ':')
     print()
 
-    # --- here we have something completely different:
-    # to start, we have three keys: name, uptime, load:
-    for sysptr in datedEntries:
+    # we have three keys: name, uptime, load:
+    for sysptr in datedEntries: # sysptr is a System object
 
         # --- uptime entries:
         entries = sysptr.get_entries('uptime')
@@ -147,7 +153,7 @@ def analyze(sysname, sysdata, switches):
 
             if thisdate != nextdate:
                 if nextdate != date(2019,1,2):
-                    a_list.append(str(thisdate) + ' - unexpected datestamp, expected: ' + str(nextdate))
+                    event_list.append(str(thisdate) + ' - unexpected datestamp, expected: ' + str(nextdate))
                 else:
                     nextdate = thisdate
 
@@ -166,10 +172,8 @@ def analyze(sysname, sysdata, switches):
 
                 ago = timedelta(hours = int(lclhours), minutes = int(lclminutes))
                 rebootdate = e[0] - ago
-                a_list.append (str(rebootdate.date()) + ' - Rebooted @ ' + str(rebootdate.time()))
+                event_list.append (str(rebootdate.date()) + ' - Rebooted @ ' + str(rebootdate.time()))
                 pass
-
-#        print()
 
         # --- load entries:
         entries = sysptr.get_entries('load')
@@ -213,7 +217,7 @@ def analyze(sysname, sysdata, switches):
                 # do something with the data we have
                 if e[1] != 'OK':
                     print('   ', thisdate, '-', e[1])
-                    a_list.append(str(thisdate) + ' - ' + e[1])
+                    event_list.append(str(thisdate) + ' - ' + e[1])
                     ping_ok = False
 
             if ping_ok == True:
@@ -238,7 +242,7 @@ def analyze(sysname, sysdata, switches):
                     y = e[1]
                     for x in y[1:]:
                         tmpstr += '             ' + x + '\n'
-                a_list.append(tmpstr)
+                event_list.append(tmpstr)
 
         # --- Disk entries:
         disklist = sysptr.get_dskkeys()
@@ -271,12 +275,12 @@ def analyze(sysname, sysdata, switches):
 
             print()
 
-    a_list.sort()
+    event_list.sort()
     if switches[0] == True:
         print('Events:')
         print()
-        print(a_list[0][:13] + 'Logging starts')
-        for x in a_list:
+        print(event_list[0][:13] + 'Logging starts')
+        for x in event_list:
             print(x)
         print()
 

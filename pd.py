@@ -23,7 +23,15 @@ from analyze import *
 # usage()
 # ----------------------------------------------------------------------------
 def usage():
-    print('Usage:', iam, '[-? | -h | --help] list_of_logfiles')
+    """ Show how to use this program.
+    """
+    print('Usage:', iam, '[-e -d -m -p] list_of_logfiles')
+    print('        -e show events')
+    print('        -d basic disk analysis')
+    print('        -m basic memory/swap analysis')
+    print('        -p show ping test results')
+    print('        -l show load analysis')
+    print('        defaults to show all')
     print('list_of_logfiles defaults to daily.log.')
     print()
 
@@ -32,21 +40,47 @@ def usage():
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
     allSystems = {}             # all the system data
+    show_events = True
+    show_disk   = True
+    show_mem    = True
+    show_ping   = True
+    show_load   = True
 
     iam = sys.argv.pop(0)       # Global program name
 
     if len(sys.argv) > 0:       # check args
-        # are they looking for help?
-        if sys.argv[0] == '-?' or sys.argv[0] == '-h' or sys.argv[0] == '--help':
-            usage()
-            sys.exit(0)
-
-        # do we have any args left?
         if len(sys.argv) > 0:
-            # put new switches here:
-            #
-            # any switch we don't recognize:
-            if sys.argv[0].startswith('-'):
+            if sys.argv[0].startswith('-'): # turn off all the switches
+                show_events = False
+                show_disk   = False
+                show_mem    = False
+                show_ping   = False
+                show_load   = False
+
+            # turn on the ones they really want:
+            while len(sys.argv) > 0 and sys.argv[0].startswith('-'):
+                sw = sys.argv.pop(0)
+                if sw == '-e':
+                    show_events = True
+                    continue
+
+                if sw == '-d':
+                    show_disk   = True
+                    continue
+
+                if sw == '-m':
+                    show_mem    = True
+                    continue
+
+                if sw == '-p':
+                    show_ping   = True
+                    continue
+
+                if sw == '-l':
+                    show_load   = True
+                    continue
+
+                # any switch we don't recognize:
                 usage()
                 sys.exit(1)
 
@@ -75,8 +109,9 @@ if __name__ == '__main__':
 
     # analyze the systems:
     if len(syslist) > 0:
+        switches = (show_events, show_disk, show_mem, show_ping, show_load)
         for sysname in sorted(syslist):
-            analyze(sysname, allSystems)
+            analyze(sysname, allSystems, switches)
 
         print()
 

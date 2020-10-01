@@ -30,7 +30,6 @@ def usage():
     print('        -d basic disk analysis')
     print('        -m basic memory/swap analysis')
     print('        -p show ping test results')
-    print('        -l show load analysis')
     print('        defaults to show all')
     print('list_of_logfiles defaults to daily.log.')
     print()
@@ -44,7 +43,6 @@ if __name__ == '__main__':
     show_disk   = True
     show_mem    = True
     show_ping   = True
-    show_load   = True
 
     iam = sys.argv.pop(0)       # Global program name
 
@@ -55,7 +53,6 @@ if __name__ == '__main__':
                 show_disk   = False
                 show_mem    = False
                 show_ping   = False
-                show_load   = False
 
             # turn on the ones they really want:
             while len(sys.argv) > 0 and sys.argv[0].startswith('-'):
@@ -74,10 +71,6 @@ if __name__ == '__main__':
 
                 if sw == '-p':
                     show_ping   = True
-                    continue
-
-                if sw == '-l':
-                    show_load   = True
                     continue
 
                 # any switch we don't recognize:
@@ -109,7 +102,7 @@ if __name__ == '__main__':
 
     # analyze the systems:
     if len(syslist) > 0:
-        switches = (show_events, show_disk, show_mem, show_ping, show_load)
+        switches = (show_events, show_disk, show_mem, show_ping)
         for sysname in sorted(syslist):
             analyze(sysname, allSystems, switches)
 

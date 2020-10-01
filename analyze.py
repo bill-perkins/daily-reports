@@ -14,7 +14,7 @@ event_list = []     # final output list
 # printminmaxavg(entries)
 # ----------------------------------------------------------------------------
 def printminmaxavg(entries):
-    """ Print the minimum, maximum, average, starting usage, and ending usage
+    """ Print start, current, minimum, maximum, and average usage
     """
     values   = [int(e[1]) for e in entries]
     min_used = min(values)
@@ -23,7 +23,6 @@ def printminmaxavg(entries):
     min_used_entry = entries[values.index(min_used)]
     avg_used = mean(values)
     havg = humanize(avg_used)
-#    print()
     print('     started:', humanize(entries[0][1]), 'on', entries[0][0].date())
     print('   currently:', humanize(entries[-1][1]), 'on', entries[-1][0].date())
     print('    min used:', humanize(min_used), 'on', min_used_entry[0].date())
@@ -72,7 +71,6 @@ def chk4variant(size, variance, entries, name=''):
             lastUsed = thisUsed
             last_e1  = e[1]
 
-
 # ----------------------------------------------------------------------------
 # analyze_load(variance, entries):
 # ----------------------------------------------------------------------------
@@ -92,11 +90,11 @@ def analyze_load(variance, entries):
 
         # do something with the data we have:
         thisUsed = float(e[1][0])
-        if thisUsed != lastUsed:
-            if thisUsed > variance:
-                event_list.append(str(thisdate) + ' - usage: ' + humanize(thisUsed))
+#        if thisUsed != lastUsed:
+        if thisUsed > variance:
+            event_list.append(str(thisdate) + ' - usage: ' + str(thisUsed))
 
-            lastUsed = thisUsed
+        lastUsed = thisUsed
 
 # ----------------------------------------------------------------------------
 # analyze(sysname, sysdata, switches):
@@ -110,7 +108,6 @@ def analyze(sysname, sysdata, switches):
             switches[1] = show_disk
             switches[2] = show_mem
             switches[3] = show_ping
-            switches[4] = show_load
     """
 
     global oneday   # find in utils.py
@@ -177,11 +174,8 @@ def analyze(sysname, sysdata, switches):
 
         # --- load entries:
         entries = sysptr.get_entries('load')
-        if switches[4] == True:
-            print('Load entries:')
-            sp = sysptr.get_component('load')
-            analyze_load(5.0, sp['entries'])
-            print()
+        sp = sysptr.get_component('load')
+        analyze_load(5.0, sp['entries'])
 
         # --- Memory entries:
         entries = sysptr.get_entries('Mem')
@@ -254,7 +248,7 @@ def analyze(sysname, sysdata, switches):
                 # - scan for changes >20% of current usage
                 chk4variant(lcldisksize, 20.0, entries, disk)
 
-                # - get min, max, average daily usage
+                # - show min, max, average daily usage
                 if switches[1] == True:
                     print("'{}' analysis:".format(disk))
                     printminmaxavg(entries)

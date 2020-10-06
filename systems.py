@@ -24,7 +24,6 @@ class System:
         """
         self.name = name            # system name
         self._lcld = {}             # local dictionary
-        self._lcld['name'] = name   # dictionary of disk sizes and usages
 
     # ------------------------------------------------------------------------
     # __str__() 
@@ -32,7 +31,7 @@ class System:
     def __str__(self):
         """ Stringify a system: spit out useful info
         """
-        output = self.name + ': ' + self.ip_address + ' keys: ' + self.get_keys()
+        output = self.name + ': ' + self.ip_address
         return output
 
     # ------------------------------------------------------------------------

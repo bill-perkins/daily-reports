@@ -182,7 +182,7 @@ def analyze(sysname, sysdata, switches):
         sp = sysptr.get_component('Mem')
         chk4variant(sp['size'], 10.0, entries, 'Mem')
         if switches[2] == True:
-            print('Memory entries:')
+            print('Memory (' + humanize(sp['size']) + '):')
             printminmaxavg(entries)
             print()
 
@@ -191,7 +191,7 @@ def analyze(sysname, sysdata, switches):
         sp = sysptr.get_component('Swap')
         chk4variant(sp['size'], 10.0, entries, 'Swap')
         if switches[2] == True:
-            print('Swap entries:')
+            print('Swap (' + humanize(sp['size']) + '):')
             printminmaxavg(entries)
             print()
 
@@ -250,7 +250,7 @@ def analyze(sysname, sysdata, switches):
 
                 # - show min, max, average daily usage
                 if switches[1] == True:
-                    print("'{}' analysis:".format(disk))
+                    print("'{}' ({}):".format(disk, humanize(lcldisksize)))
                     printminmaxavg(entries)
                     print()
 

@@ -27,6 +27,15 @@ class System:
         self._lcld['name'] = name   # dictionary of disk sizes and usages
 
     # ------------------------------------------------------------------------
+    # __str__() 
+    # ------------------------------------------------------------------------
+    def __str__(self):
+        """ Stringify a system: spit out useful info
+        """
+        output = self.name + ': ' + self.ip_address + ' keys: ' + self.get_keys()
+        return output
+
+    # ------------------------------------------------------------------------
     # set_ip_address(ip_address)
     # ------------------------------------------------------------------------
     def set_ip_address(self, ip_address):

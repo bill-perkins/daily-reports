@@ -25,11 +25,12 @@ from analyze import *
 def usage():
     """ Show how to use this program.
     """
-    print('Usage:', iam, '[-edmp] list_of_logfiles')
+    print('Usage:', iam, '[-edmp] [-h] list_of_logfiles')
     print('        -e show events')
     print('        -d basic disk analysis')
     print('        -m basic memory/swap analysis')
     print('        -p show ping test results')
+    print('        -h show this message')
     print('        switches default to on.')
     print('list_of_logfiles defaults to daily.log.')
     print()
@@ -47,33 +48,34 @@ if __name__ == '__main__':
     iam = sys.argv.pop(0)       # Global program name
 
     if len(sys.argv) > 0:       # check args
-        if len(sys.argv) > 0:
-            if sys.argv[0].startswith('-'):
-                show_events = False # turn
-                show_disk   = False # off
-                show_mem    = False # all
-                show_ping   = False # switches
+        if sys.argv[0].startswith('-'):
+            show_events = False # turn
+            show_disk   = False # off
+            show_mem    = False # all the
+            show_ping   = False # switches
 
-            # turn on the ones they really want:
-            while len(sys.argv) > 0 and sys.argv[0].startswith('-'):
-                sw = sys.argv.pop(0)
-                if 'e' in sw:
-                    show_events = True
+        # turn on the ones they really want:
+        while len(sys.argv) > 0 and sys.argv[0].startswith('-'):
+            sw = sys.argv.pop(0)
+            if 'e' in sw:
+                show_events = True
 
-                if 'd' in sw:
-                    show_disk   = True
+            if 'd' in sw:
+                show_disk   = True
 
-                if 'm' in sw:
-                    show_mem    = True
+            if 'm' in sw:
+                show_mem    = True
 
-                if 'p' in sw:
-                    show_ping   = True
+            if 'p' in sw:
+                show_ping   = True
 
-                continue
-
-                # any switch we don't recognize:
+            if 'h' in sw:
                 usage()
                 sys.exit(1)
+
+            continue
+
+            # any switch we don't recognize, ignore
 
     # did they give us any files to process?
     if len(sys.argv) == 0:

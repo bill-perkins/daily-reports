@@ -25,12 +25,12 @@ from analyze import *
 def usage():
     """ Show how to use this program.
     """
-    print('Usage:', iam, '[-e -d -m -p] list_of_logfiles')
+    print('Usage:', iam, '[-edmp] list_of_logfiles')
     print('        -e show events')
     print('        -d basic disk analysis')
     print('        -m basic memory/swap analysis')
     print('        -p show ping test results')
-    print('        defaults to show all')
+    print('        switches default to on.')
     print('list_of_logfiles defaults to daily.log.')
     print()
 
@@ -48,30 +48,28 @@ if __name__ == '__main__':
 
     if len(sys.argv) > 0:       # check args
         if len(sys.argv) > 0:
-            if sys.argv[0].startswith('-'): # turn off all the switches
-                show_events = False
-                show_disk   = False
-                show_mem    = False
-                show_ping   = False
+            if sys.argv[0].startswith('-'):
+                show_events = False # turn
+                show_disk   = False # off
+                show_mem    = False # all
+                show_ping   = False # switches
 
             # turn on the ones they really want:
             while len(sys.argv) > 0 and sys.argv[0].startswith('-'):
                 sw = sys.argv.pop(0)
-                if sw == '-e':
+                if 'e' in sw:
                     show_events = True
-                    continue
 
-                if sw == '-d':
+                if 'd' in sw:
                     show_disk   = True
-                    continue
 
-                if sw == '-m':
+                if 'm' in sw:
                     show_mem    = True
-                    continue
 
-                if sw == '-p':
+                if 'p' in sw:
                     show_ping   = True
-                    continue
+
+                continue
 
                 # any switch we don't recognize:
                 usage()

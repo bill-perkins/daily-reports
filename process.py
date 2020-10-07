@@ -1,4 +1,4 @@
-# newprocess.py
+# process.py
 # imported by pd.py
 #
 # Take a given log file and return the system name,
@@ -51,12 +51,12 @@ def gather_data(lines):
             datelist = line.split(':',1)[1]
             dtobj = datetime.strptime(datelist, ' %a %b %d %H:%M:%S %Z %Y\n')
 
+            # set up a new system, sysobjlist:
             if sysname not in sysnamelist:
-                # set up a new system, sysobjlist:
                 sysobjlist.append(System(sysname))
                 sysnamelist.append(sysname)
                 sysobj = sysobjlist[-1]
-            else:
+            else: # just use the one we already have
                 sysobj = sysobjlist[sysnamelist.index(sysname)]
 
             syskeys = sysobj.get_keys()
@@ -103,6 +103,7 @@ def gather_data(lines):
                 sysobj.add_component('Mem', dHumanize(parts[1]))
 
             sysobj.add_usage('Mem', [dtobj, dHumanize(parts[2])])
+
             # finished here:
             continue
 
@@ -113,6 +114,7 @@ def gather_data(lines):
                 sysobj.add_component('Swap', dHumanize(parts[1]))
 
             sysobj.add_usage('Swap', [dtobj, dHumanize(parts[2])])
+
             # finished here:
             continue
 

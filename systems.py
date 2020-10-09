@@ -24,6 +24,7 @@ class System:
         """
         self.name = name            # system name
         self._lcld = {}             # local dictionary
+        self.ip_address = ''        # ip address of system
 
     # ------------------------------------------------------------------------
     # __str__() 
@@ -31,7 +32,14 @@ class System:
     def __str__(self):
         """ Stringify a system: spit out useful info
         """
-        output = self.name + ': ' + self.ip_address
+        output =  self.name + ': '
+        if len(self.ip_address) > 0:
+            output += self.ip_address + ': '
+        for key in self.get_keys():
+            output += '\'' + key + '\' ('
+            c = len(self._lcld[key]['entries'])
+            output += str(c) + ') entries, '
+
         return output
 
     # ------------------------------------------------------------------------

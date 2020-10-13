@@ -24,6 +24,7 @@ class System:
         """
         self.name = name            # system name
         self._lcld = {}             # local dictionary
+        self.ip_address = ''        # ip address of system
 
     # ------------------------------------------------------------------------
     # __str__() 

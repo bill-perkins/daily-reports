@@ -31,7 +31,18 @@ class System:
     def __str__(self):
         """ Stringify a system: spit out useful info
         """
-        output = self.name + ': ' + self.ip_address
+        output = self.name + ':'
+        if hasattr(self, 'ip_address'):
+            output += ': ' + self.ip_address
+
+        output += '\n    keys: '
+        keylist = self.get_keys()
+        for key in keylist:
+            output += '\n        '
+            output += repr(key) + ': ('
+            output += str(self.get_entries_count(key))
+            output += ' entries)'
+
         return output
 
     # ------------------------------------------------------------------------

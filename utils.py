@@ -1,16 +1,6 @@
 # utility functions for this project
 import sys
 
-from datetime import datetime
-from datetime import date
-from datetime import timedelta
-
-# if a line starts with a day of the week, we want to add the
-# hostname to the line.
-starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
-
-oneday = timedelta(days = 1) # Global timedelta of one day
-
 # ----------------------------------------------------------------------------
 # getContent(filename)
 # ----------------------------------------------------------------------------
@@ -77,15 +67,15 @@ def dHumanize(nstr):
 
     if 'M' in nstr:
         n = float(nstr.rstrip('M'))
-        return n * 1024 * 1024.0
+        return n * 1024 * 1024
 
     if 'G' in nstr:
         n = float(nstr.rstrip('G'))
-        return n * 1024 * 1024 * 1024.0
+        return n * 1024 * 1024 * 1024
 
     if 'T' in nstr:
         n = float(nstr.rstrip('T'))
-        return n * 1024 * 1024 * 1024 * 1024.0
+        return n * 1024 * 1024 * 1024 * 1024
 
     # assume an 'M' was implied:
     n = float(nstr)

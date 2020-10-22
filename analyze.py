@@ -7,7 +7,9 @@ from datetime import date
 from datetime import timedelta
 from statistics import mean
 
-from utils import humanize, oneday
+from utils import humanize
+from lclvars import oneday
+
 event_list = []     # final output list
 
 # ----------------------------------------------------------------------------
@@ -90,7 +92,6 @@ def analyze_load(variance, entries):
 
         # do something with the data we have:
         thisUsed = float(e[1][0])
-#        if thisUsed != lastUsed:
         if thisUsed > variance:
             event_list.append(str(thisdate) + ' - usage: ' + str(thisUsed))
 
@@ -110,14 +111,11 @@ def analyze(sysname, sysdata, switches):
             switches[3] = show_ping
     """
 
-    global oneday   # find in utils.py
     global event_list   # final output list
 
     event_list = []     # start fresh
     variance = 19.9 # default variance
 
-# project started 2020-01-03:
-#    nexttime = date(2020,1,3)
     nextdate = date(2019, 1, 2)
     lastdate = date(2019, 1, 2)
     thisdate = date(2019, 1, 3)

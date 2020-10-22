@@ -7,8 +7,12 @@
 # this one replaces the original process.py and parseentry.py
 
 import sys
-from utils import *
+#import utils
+#import lclvars
+from utils import getContent
+from utils import dHumanize
 from systems import System
+
 from datetime import datetime
 
 # ----------------------------------------------------------------------------

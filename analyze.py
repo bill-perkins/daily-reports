@@ -3,15 +3,22 @@
 # this version replaces the original analyze.py and disk_analyze.py
 #
 
-from datetime import date
-from datetime import timedelta
-from statistics import mean
+# --- functions defined here:
+# printminmaxavg(entries)
+# chk4variant(size, variance, entries)
+# analyze_load(variance, entries):
+# analyze(sysname, sysdata, switches):
 
-from utils import humanize
-from lclvars import oneday
+from datetime   import datetime
+from datetime   import date
+from datetime   import timedelta
+from statistics import mean
+from utils      import humanize
+#from lclvars    import oneday
 
 event_list = []     # final output list
 
+oneday = timedelta(days = 1) # Global timedelta of one day
 # ----------------------------------------------------------------------------
 # printminmaxavg(entries)
 # ----------------------------------------------------------------------------

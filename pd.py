@@ -32,7 +32,7 @@ def usage():
     print('        -p show ping test results')
     print('        -h show this message')
     print('        switches default to on.')
-    print('list_of_logfiles defaults to daily.log.')
+    print('list_of_logfiles defaults to ./daily.log.')
     print()
 
 # ----------------------------------------------------------------------------

@@ -19,6 +19,21 @@ from utils      import humanize
 event_list = []     # final output list
 
 oneday = timedelta(days = 1) # Global timedelta of one day
+
+# ----------------------------------------------------------------------------
+# showusage(size, entries, name)
+# ----------------------------------------------------------------------------
+def showusage(size, entries, name):
+    '''
+    '''
+    lclSize = size
+    usepct  = 0
+
+    for e in entries:
+        thisdate = e[0].date()
+        thistime = e[0].time()
+        thisUsed = e[1]
+
 # ----------------------------------------------------------------------------
 # printminmaxavg(entries)
 # ----------------------------------------------------------------------------
@@ -39,7 +54,7 @@ def printminmaxavg(entries):
     print('    avg used:', humanize(avg_used))
 
 # ----------------------------------------------------------------------------
-# chk4variant(size, variance, entries)
+# chk4variant(size, variance, entries, name)
 # ----------------------------------------------------------------------------
 def chk4variant(size, variance, entries, name=''):
     """ Print any usage entry that goes outside of
@@ -109,7 +124,7 @@ def analyze_load(variance, entries):
 # ----------------------------------------------------------------------------
 def analyze(sysname, sysdata, switches):
     """ Look for entries to print
-        sysname  is a string of the system we're investigating
+        sysname  is the name of the system we're investigating
         sysdata  is a dictionary, with sysname as the key
         switches is a tuple of Booleans:
             switches[0] = show_events
@@ -121,7 +136,7 @@ def analyze(sysname, sysdata, switches):
     global event_list   # final output list
 
     event_list = []     # start fresh
-    variance = 19.9 # default variance
+    variance = 19.9     # default variance
 
     nextdate = date(2019, 1, 2)
     lastdate = date(2019, 1, 2)
@@ -142,7 +157,7 @@ def analyze(sysname, sysdata, switches):
 
     # we have three keys: name, uptime, load:
     for sysptr in datedEntries: # sysptr is a System object
-
+        ''' datedEntries is a list of system objects '''
         # --- uptime entries:
         entries = sysptr.get_entries('uptime')
         for e in entries:
@@ -154,10 +169,8 @@ def analyze(sysname, sysdata, switches):
             lastdate = thisdate
 
             if thisdate != nextdate:
-                if nextdate != date(2019,1,2):
+                if nextdate != date(2019, 1, 2):
                     event_list.append(str(thisdate) + ' - unexpected datestamp, expected: ' + str(nextdate))
-                else:
-                    nextdate = thisdate
 
             nextdate = thisdate + oneday
 
@@ -175,7 +188,6 @@ def analyze(sysname, sysdata, switches):
                 ago = timedelta(hours = int(lclhours), minutes = int(lclminutes))
                 rebootdate = e[0] - ago
                 event_list.append (str(rebootdate.date()) + ' - Rebooted @ ' + str(rebootdate.time()))
-                pass
 
         # --- load entries:
         entries = sysptr.get_entries('load')
@@ -247,11 +259,12 @@ def analyze(sysname, sysdata, switches):
         disklist = sysptr.get_dskkeys()
         for disk in disklist:
             lcldisksize = sysptr.get_dsksize(disk)
+            ''' entries is a list of a datetime and a size '''
             entries = sysptr.get_entries(disk)
             if entries != None:
 
-                # - scan for changes >20% of current usage
-                chk4variant(lcldisksize, 20.0, entries, disk)
+                # - scan for changes >10% of current usage
+                chk4variant(size=lcldisksize, variance=10.0, entries=entries, name=disk)
 
                 # - show min, max, average daily usage
                 if switches[1] == True:

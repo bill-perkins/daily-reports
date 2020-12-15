@@ -14,11 +14,12 @@ from datetime   import date
 from datetime   import timedelta
 from statistics import mean
 from utils      import humanize
-#from lclvars    import oneday
 
 event_list = []     # final output list
 
-oneday = timedelta(days = 1) # Global timedelta of one day
+ONEDAY = timedelta(days = 1) # timedelta of one day
+DISKVARIANCE = 20.0         # disk variance we are looking for
+SWAPVARIANCE = 10.0         # mem/swap variance we are looking for
 
 # ----------------------------------------------------------------------------
 # showusage(size, entries, name)
@@ -47,10 +48,10 @@ def printminmaxavg(entries):
     min_used_entry = entries[values.index(min_used)]
     avg_used = mean(values)
 
-    print('     started:', humanize(entries[0][1]), 'on', entries[0][0].date())
+    print('     started:', humanize(entries[0][1]),  'on', entries[0][0].date())
     print('   currently:', humanize(entries[-1][1]), 'on', entries[-1][0].date())
-    print('    min used:', humanize(min_used), 'on', min_used_entry[0].date())
-    print('    max used:', humanize(max_used), 'on', max_used_entry[0].date())
+    print('    min used:', humanize(min_used),       'on', min_used_entry[0].date())
+    print('    max used:', humanize(max_used),       'on', max_used_entry[0].date())
     print('    avg used:', humanize(avg_used))
 
 # ----------------------------------------------------------------------------
@@ -125,7 +126,7 @@ def analyze_load(variance, entries):
 def analyze(sysname, sysdata, switches):
     """ Look for entries to print
         sysname  is the name of the system we're investigating
-        sysdata  is a dictionary, with sysname as the key
+        sysdata  is a dictionary, uses sysname as the key
         switches is a tuple of Booleans:
             switches[0] = show_events
             switches[1] = show_disk
@@ -156,15 +157,20 @@ def analyze(sysname, sysdata, switches):
     print()
 
     # we have three keys: name, uptime, load:
-    for sysptr in datedEntries: # sysptr is a System object
-        ''' datedEntries is a list of system objects '''
+    for sysptr in datedEntries:
+        ''' datedEntries is a list of system objects
+            sysptr is the dictionary for the given system name
+        '''
+
         # --- uptime entries:
         entries = sysptr.get_entries('uptime')
+        # entries is the list of of uptime entries
         for e in entries:
+            # each 'e' is a list: [datetime, [list_of_words]]
             thisdate = e[0].date()
             thistime = e[0].time()
             if thisdate == lastdate:
-                continue
+                continue    # skip duplicate date entries
 
             lastdate = thisdate
 
@@ -172,7 +178,7 @@ def analyze(sysname, sysdata, switches):
                 if nextdate != date(2019, 1, 2):
                     event_list.append(str(thisdate) + ' - unexpected datestamp, expected: ' + str(nextdate))
 
-            nextdate = thisdate + oneday
+            nextdate = thisdate + ONEDAY
 
             uptime = e[1]
             if 'days,' not in uptime and 'day,' not in uptime:
@@ -192,12 +198,15 @@ def analyze(sysname, sysdata, switches):
         # --- load entries:
         entries = sysptr.get_entries('load')
         sp = sysptr.get_component('load')
+        # get_component() returns a dictionary (key 'entries') with a list of entries
         analyze_load(5.0, sp['entries'])
 
         # --- Memory entries:
         entries = sysptr.get_entries('Mem')
         sp = sysptr.get_component('Mem')
-        chk4variant(sp['size'], 10.0, entries, 'Mem')
+        # get_component returns a dictionary (key 'entries', 'size'):
+        # entries is a list, each value is a list [datetime, size_in_bytes]
+        chk4variant(sp['size'], SWAPVARIANCE, entries, 'Mem')
         if switches[2] == True:
             print('Memory (' + humanize(sp['size']) + '):')
             printminmaxavg(entries)
@@ -206,7 +215,9 @@ def analyze(sysname, sysdata, switches):
         # --- Swap entries:
         entries = sysptr.get_entries('Swap')
         sp = sysptr.get_component('Swap')
-        chk4variant(sp['size'], 10.0, entries, 'Swap')
+        # get_component returns a dictionary (key 'entries', 'size'):
+        # entries is a list, each value is a list [datetime, size_in_bytes]
+        chk4variant(sp['size'], SWAPVARIANCE, entries, 'Swap')
         if switches[2] == True:
             print('Swap (' + humanize(sp['size']) + '):')
             printminmaxavg(entries)
@@ -215,8 +226,9 @@ def analyze(sysname, sysdata, switches):
         # --- Ping entries:
         if switches[3] == True:
             entries = sysptr.get_entries('Ping')
+            # get_entries() returned a list of [datetime, 'OK'] or error messages
             print('Ping entries:')
-            ping_ok = True
+            ping_ok = True      # preset
             for e in entries:
                 thisdate = e[0].date()
                 thistime = e[0].time()
@@ -226,7 +238,7 @@ def analyze(sysname, sysdata, switches):
                 lastdate = thisdate
 
                 # do something with the data we have
-                if e[1] != 'OK':
+                if e[1] != 'OK':    # flag it
                     print('   ', thisdate, '-', e[1])
                     event_list.append(str(thisdate) + ' - ' + e[1])
                     ping_ok = False
@@ -238,6 +250,7 @@ def analyze(sysname, sysdata, switches):
 
         # --- Services entries:
         entries = sysptr.get_entries('Services')
+        # get_entries() returned a list of [datetime, 'OK'] or error messages
         for e in entries:
             thisdate = e[0].date()
             thistime = e[0].time()
@@ -264,7 +277,7 @@ def analyze(sysname, sysdata, switches):
             if entries != None:
 
                 # - scan for changes >10% of current usage
-                chk4variant(size=lcldisksize, variance=10.0, entries=entries, name=disk)
+                chk4variant(size=lcldisksize, variance=DISKVARIANCE, entries=entries, name=disk)
 
                 # - show min, max, average daily usage
                 if switches[1] == True:

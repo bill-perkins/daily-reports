@@ -55,6 +55,14 @@ def printminmaxavg(entries):
     print('    avg used:', humanize(avg_used))
 
 # ----------------------------------------------------------------------------
+# pctize()
+# ----------------------------------------------------------------------------
+def pctize(amt, outof):
+#    percent = (amt / outof) * 100
+#    percent = (float(amt) / float(outof)) * 100.0
+    return (float(amt) / float(outof)) * 100.0
+
+# ----------------------------------------------------------------------------
 # chk4variant(size, variance, entries, name)
 # ----------------------------------------------------------------------------
 def chk4variant(size, variance, entries, name=''):
@@ -67,9 +75,6 @@ def chk4variant(size, variance, entries, name=''):
 
     lclSize = size
 
-    if name != '':
-        name = ' on ' + name
-
     for e in entries:
         thisdate = e[0].date()
         thistime = e[0].time()
@@ -78,20 +83,23 @@ def chk4variant(size, variance, entries, name=''):
 
         lastdate = thisdate
         # do something with the data we have
-        #print('   ', thisdate, '-', e[1], 'used out of', lclSize)
+        #print('   ', thisdate, e[1], 'used out of', lclSize)
         thisUsed = e[1]
         if thisUsed != lastUsed:
             delta = thisUsed - lastUsed
             pct = (delta / lclSize) * 100
 
+            h_e1 = humanize(e[1])
+            h_l1 = humanize(last_e1)
+            h_sz = humanize(size)
+            p_e1 = f'{pctize(e[1], lclSize):.1f}'
+            p_l1 = f'{pctize(last_e1, lclSize):.1f}'
+
             if pct > variance: # current hard-coded variance
-                event_list.append(str(thisdate) + ' - ' + humanize(e[1]) + \
-                        ' used out of ' + humanize(size) + name + \
-                        f' (+{pct:.1f}%, up from ' + humanize(last_e1) + ')')
+                event_list.append(f'{str(thisdate)} {str.ljust(name, 12)}: {h_e1} ({p_e1}%) used out of {h_sz}, up from {h_l1} ({p_l1}%)')
+
             elif pct < -variance:
-                event_list.append(str(thisdate) + ' - ' + humanize(e[1]) + \
-                        ' used out of ' + humanize(size) + name + \
-                        f' ({pct:.1f}%, down from ' + humanize(last_e1) + ')')
+                event_list.append(f'{str(thisdate)} {str.ljust(name, 12)}: {h_e1} ({p_e1}%) used out of {h_sz}, dn from {h_l1} ({p_l1}%)')
 
             lastUsed = thisUsed
             last_e1  = e[1]
@@ -116,7 +124,7 @@ def analyze_load(variance, entries):
         # do something with the data we have:
         thisUsed = float(e[1][0])
         if thisUsed > variance:
-            event_list.append(str(thisdate) + ' - usage: ' + str(thisUsed))
+            event_list.append(f'{str(thisdate)} Load        : {str(thisUsed)}, was {lastUsed}')
 
         lastUsed = thisUsed
 
@@ -142,6 +150,7 @@ def analyze(sysname, sysdata, switches):
     nextdate = date(2019, 1, 2)
     lastdate = date(2019, 1, 2)
     thisdate = date(2019, 1, 3)
+    show_events, show_disk, show_mem, show_ping = switches
 
     if sysname not in sysdata.keys():
         print('analyze(): system', sysname, 'not in sysdata dictionary.')
@@ -176,7 +185,7 @@ def analyze(sysname, sysdata, switches):
 
             if thisdate != nextdate:
                 if nextdate != date(2019, 1, 2):
-                    event_list.append(str(thisdate) + ' - unexpected datestamp, expected: ' + str(nextdate))
+                    event_list.append(f'{str(thisdate)} unexpected datestamp, expected: {str(nextdate)}')
 
             nextdate = thisdate + ONEDAY
 
@@ -193,38 +202,38 @@ def analyze(sysname, sysdata, switches):
 
                 ago = timedelta(hours = int(lclhours), minutes = int(lclminutes))
                 rebootdate = e[0] - ago
-                event_list.append (str(rebootdate.date()) + ' - Rebooted @ ' + str(rebootdate.time()))
+                event_list.append (str(rebootdate.date()) + ' Rebooted    : ' + str(rebootdate.time()))
 
         # --- load entries:
         entries = sysptr.get_entries('load')
-        sp = sysptr.get_component('load')
+        sp      = sysptr.get_component('load')
         # get_component() returns a dictionary (key 'entries') with a list of entries
         analyze_load(5.0, sp['entries'])
 
         # --- Memory entries:
         entries = sysptr.get_entries('Mem')
-        sp = sysptr.get_component('Mem')
+        sp      = sysptr.get_component('Mem')
         # get_component returns a dictionary (key 'entries', 'size'):
         # entries is a list, each value is a list [datetime, size_in_bytes]
         chk4variant(sp['size'], SWAPVARIANCE, entries, 'Mem')
-        if switches[2] == True:
+        if show_mem:
             print('Memory (' + humanize(sp['size']) + '):')
             printminmaxavg(entries)
             print()
 
         # --- Swap entries:
         entries = sysptr.get_entries('Swap')
-        sp = sysptr.get_component('Swap')
+        sp      = sysptr.get_component('Swap')
         # get_component returns a dictionary (key 'entries', 'size'):
         # entries is a list, each value is a list [datetime, size_in_bytes]
         chk4variant(sp['size'], SWAPVARIANCE, entries, 'Swap')
-        if switches[2] == True:
+        if show_mem:
             print('Swap (' + humanize(sp['size']) + '):')
             printminmaxavg(entries)
             print()
 
         # --- Ping entries:
-        if switches[3] == True:
+        if show_ping:
             entries = sysptr.get_entries('Ping')
             # get_entries() returned a list of [datetime, 'OK'] or error messages
             print('Ping entries:')
@@ -239,8 +248,8 @@ def analyze(sysname, sysdata, switches):
 
                 # do something with the data we have
                 if e[1] != 'OK':    # flag it
-                    print('   ', thisdate, '-', e[1])
-                    event_list.append(str(thisdate) + ' - ' + e[1])
+                    print(f'    {str(thisdate)} - {e[1]}')
+                    event_list.append(str(thisdate) + ' ' + e[1])
                     ping_ok = False
 
             if ping_ok == True:
@@ -261,7 +270,7 @@ def analyze(sysname, sysdata, switches):
 
             # do something with the data we have
             if e[1][0] != 'OK':
-                tmpstr = str(thisdate) + ' - ' + e[1][0] + '\n'
+                tmpstr = str(thisdate) + ' ' + e[1][0] + '\n'
                 if type(e[1]) == type([]):
                     y = e[1]
                     for x in y[1:]:
@@ -280,7 +289,7 @@ def analyze(sysname, sysdata, switches):
                 chk4variant(size=lcldisksize, variance=DISKVARIANCE, entries=entries, name=disk)
 
                 # - show min, max, average daily usage
-                if switches[1] == True:
+                if show_disk:
                     print("'{}' ({}):".format(disk, humanize(lcldisksize)))
                     printminmaxavg(entries)
                     print()
@@ -300,11 +309,11 @@ def analyze(sysname, sysdata, switches):
 
             print()
 
-    event_list.sort()
-    if switches[0] == True:
+    if show_events:
+        event_list.sort()
         print('Events:')
         print()
-        print(event_list[0][:13] + 'Logging starts')
+        print(f'{event_list[0][:10]} Logging starts')
         for x in event_list:
             print(x)
         print()

@@ -22,6 +22,7 @@ class System:
         """ Create a system object with given name, empty local dictionary
             Entry: name = system name
         """
+        # instance variables go here:
         self.name = name            # system name
         self._lcld = {}             # local dictionary
         self.ip_address = ''        # ip address of system

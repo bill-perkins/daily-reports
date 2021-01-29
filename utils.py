@@ -8,8 +8,8 @@ def getContent(filename):
     """ Bring the contents of the given input file into a list,
         and return the list.
         filename: name of the file we're processing (daily.log)
-        returns:  deque of lines from given filename;
-        sys.exit(1) if file not found or permissions error.
+        returns:  reverse() of lines from given filename;
+            sys.exit(1) if file not found or permissions error.
     """
 
     logcontent = []

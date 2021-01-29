@@ -3,6 +3,8 @@
 # fixdaily.py: stolen from std.py, the 'standard' python program
 
 import platform
+import os
+import sys
 
 # ----------------------------------------------------------------------------
 # getContent(filename)
@@ -23,7 +25,6 @@ def getContent(filename):
 
     except IOError as err:
         print("getContent(): Couldn't open file " + filename + ": " + str(err))
-#        sys.exit(1)
 
     return output
 
@@ -34,15 +35,23 @@ if __name__ == '__main__':
     """Do something
     """
 
-    hostname = platform.node()
+    iam = sys.argv.pop(0)
 
-    inplines = getContent('daily.log')
-    starters = [ 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun' ]
+    if len(sys.argv) != 2:
+        print(f'usage: {iam} logfile hostname_to_use')
+        sys.exit(1)
+
+    logfile  = sys.argv[0]
+    hostname = sys.argv[1]
+
+    inplines = getContent(logfile)
+
+    starters = [ 'Mon ', 'Tue ', 'Wed ', 'Thu ', 'Fri ', 'Sat ', 'Sun ' ]
     for line in inplines:
-        if line[0:3] in starters:
+        if line[0:4] in starters:
             print(hostname + ": " + line.strip())
         else:
-            print(line.strip())
+            print(line.rstrip())
 
 
 # ----------------------------------------------------------------------------

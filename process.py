@@ -18,7 +18,7 @@ from datetime import datetime
 # ----------------------------------------------------------------------------
 # gather_data()
 # ----------------------------------------------------------------------------
-def gather_data(lines):
+def gather_data(logfilename, lines):
     """ Parse given data, extract useful information:
     """
     sysobjlist  = []    # list of System objects
@@ -224,7 +224,7 @@ def process(logfile):
     """
 
     print('processing log file:', logfile)
-    loglines = getContent(logfile)
-    return gather_data(loglines)
+    loglines = getContent(logfile)  # getContent() returns reversed lines for pop()
+    return gather_data(logfile, loglines) # gather_data() returns sysname, sysobjlist
 
 # EOF:
